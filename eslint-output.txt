@@ -1,0 +1,38 @@
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\app\dashboard\clientes\[id]\page.tsx
+  10:8  error  'Link' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\app\dashboard\configuracoes\page.tsx
+   4:10  error  'Save' is defined but never used  @typescript-eslint/no-unused-vars
+  50:14  error  'err' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\app\dashboard\page.tsx
+  16:3   error  'XCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  88:14  error  'e' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\app\landing\page.tsx
+  148:15   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  148:132  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\app\login\page.tsx
+  26:16  error  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\AppointmentModal.tsx
+   50:9   error  'SLOT_STEP' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  233:71  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  233:86  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\Badge.tsx
+  12:9  error  'styles' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\Button.tsx
+  18:9  error  'variantStyles' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\Card.tsx
+  3:11  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\Toast.tsx
+  2:17  error  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 15 problems (15 errors, 0 warnings)
+

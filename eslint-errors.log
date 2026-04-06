@@ -1,0 +1,17 @@
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\app\landing\page.tsx
+  148:15   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  148:132  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\Badge.tsx
+  12:9  error  'styles' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\components\Button.tsx
+  18:9  error  'variantStyles' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gmmkt\OneDrive\Desktop\Agendify\fix-lint.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Ô£û 6 problems (6 errors, 0 warnings)
+

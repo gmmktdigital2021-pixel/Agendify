@@ -1,0 +1,5 @@
+app/dashboard/clientes/page.tsx(71,84): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "clients", unknown, "PATCH">'. Did you mean 'match'?
+app/dashboard/clientes/page.tsx(82,55): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "clients", unknown, "POST">'. Did you mean 'match'?
+app/dashboard/servicos/page.tsx(63,85): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "services", unknown, "PATCH">'. Did you mean 'match'?
+app/dashboard/servicos/page.tsx(68,56): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "services", unknown, "POST">'. Did you mean 'match'?
+app/dashboard/servicos/page.tsx(80,75): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "services", unknown, "DELETE">'. Did you mean 'match'?
