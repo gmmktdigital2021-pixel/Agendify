@@ -275,11 +275,11 @@ export default function DashboardPage() {
                   <div className="flex gap-2">
                     <div className="flex-1">
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">De</label>
-                      <input type="date" value={customStart} onChange={e=>setCustomStart(e.target.value)} className="w-full text-xs p-1.5 border border-slate-200 rounded" />
+                      <input type="date" value={customStart} onChange={e=>setCustomStart(e.target.value)} className="w-full text-xs p-1.5 border border-slate-200 rounded text-slate-800 font-medium bg-slate-50" />
                     </div>
                     <div className="flex-1">
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Até</label>
-                      <input type="date" value={customEnd} onChange={e=>setCustomEnd(e.target.value)} className="w-full text-xs p-1.5 border border-slate-200 rounded" />
+                      <input type="date" value={customEnd} onChange={e=>setCustomEnd(e.target.value)} className="w-full text-xs p-1.5 border border-slate-200 rounded text-slate-800 font-medium bg-slate-50" />
                     </div>
                   </div>
                   <Button onClick={handleApplyCustom} className="w-full py-1.5 text-xs">Aplicar</Button>
