@@ -1,43 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from "lucide-react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Toast } from "@/components/Toast";
+import { supabase, db } from "@/lib/supabase";
 
-// --- MOCK DATA ---
 type AppointmentStatus = "confirmado" | "pendente" | "cancelado" | "concluido";
 
-interface Appointment {
+interface AppointmentWithRelations {
   id: string;
-  date: string; // YYYY-MM-DD
-  startTime: string; // HH:MM
-  durationMinutes: number;
-  clientName: string;
-  serviceName: string;
+  data: string; // YYYY-MM-DD
+  hora_inicio: string; // HH:MM:SS
   status: AppointmentStatus;
+  clients: { nome: string; telefone: string } | null;
+  services: { nome: string; duracao_minutos: number } | null;
 }
 
-// Generate base date as today to ensure we see the mock data easily
-const today = new Date();
-const todayStr = today.toISOString().split("T")[0];
-
-const mockAppointments: Appointment[] = [
-  { id: "1", date: todayStr, startTime: "09:00", durationMinutes: 60, clientName: "Maria Silva", serviceName: "Corte", status: "confirmado" },
-  { id: "2", date: todayStr, startTime: "10:30", durationMinutes: 90, clientName: "Ana Souza", serviceName: "Progressiva", status: "pendente" },
-  { id: "3", date: todayStr, startTime: "14:00", durationMinutes: 30, clientName: "João Pereira", serviceName: "Corte", status: "cancelado" },
-  { id: "4", date: todayStr, startTime: "15:00", durationMinutes: 120, clientName: "Carla Mendes", serviceName: "Coloração", status: "concluido" },
-  
-  // Another day for testing
-  { 
-    id: "5", 
-    date: new Date(today.getTime() + 86400000).toISOString().split("T")[0], 
-    startTime: "09:30", durationMinutes: 60, clientName: "Bia Alves", serviceName: "Manicure", status: "confirmado" 
-  },
-];
-
-const START_HOUR = 9;
-const END_HOUR = 18;
+const START_HOUR = 8; // Começando 08:00 para abranger padrões
+const END_HOUR = 20;  // Indo até 20:00
 const SLOT_DURATION_MIN = 30;
 const SLOT_HEIGHT_PX = 64; // h-16 = 4rem = 64px
 
@@ -59,6 +40,11 @@ export default function AgendaPage() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [isMobile, setIsMobile] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
+  
+  // Realtime Supabase Data
+  const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [salonId, setSalonId] = useState<string | null>(null);
 
   // Window resize listener
   useEffect(() => {
@@ -70,14 +56,26 @@ export default function AgendaPage() {
     }
   }, []);
 
-  const navigateDate = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    const amount = isMobile ? 1 : 7;
-    newDate.setDate(currentDate.getDate() + (direction === 'next' ? amount : -amount));
-    setCurrentDate(newDate);
-  };
+  const fetchWeeklyAppointments = useCallback(async (sid: string, starts: string, ends: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await db.appointments.select(`
+        id, data, hora_inicio, status,
+        clients ( nome, telefone ),
+        services ( nome, duracao_minutos )
+      `)
+      .eq('salon_id', sid)
+      .gte('data', starts)
+      .lte('data', ends);
 
-  const goToToday = () => setCurrentDate(new Date());
+      if (error) throw error;
+      setAppointments((data as unknown) as AppointmentWithRelations[]);
+    } catch (err) {
+      console.error("Falha ao buscar agenda semanal:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const daysToRender = useMemo(() => {
     if (isMobile) {
@@ -92,6 +90,62 @@ export default function AgendaPage() {
     }
   }, [currentDate, isMobile]);
 
+  useEffect(() => {
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setIsLoading(false);
+        return;
+      }
+      const { data: salon } = await supabase.from('salons').select('id').eq('user_id', session.user.id).single();
+      
+      if (salon) {
+        setSalonId(salon.id);
+      }
+    }
+    init();
+  }, []);
+
+  useEffect(() => {
+    if (!salonId) return;
+    
+    // Calcular range de busca baseado nos dias renderizados
+    const startStr = daysToRender[0].toISOString().split('T')[0];
+    const endStr = daysToRender[daysToRender.length - 1].toISOString().split('T')[0];
+
+    fetchWeeklyAppointments(salonId, startStr, endStr);
+  }, [salonId, daysToRender, fetchWeeklyAppointments]);
+
+  // Realtime Subscription Listener
+  useEffect(() => {
+    if (!salonId) return;
+    const channel = supabase
+      .channel('realtime_agenda')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'appointments',
+        filter: `salon_id=eq.${salonId}`
+      }, () => {
+         // Re-fetch no viewport atual se houver inserções do formulário público
+         const startStr = daysToRender[0].toISOString().split('T')[0];
+         const endStr = daysToRender[daysToRender.length - 1].toISOString().split('T')[0];
+         fetchWeeklyAppointments(salonId, startStr, endStr);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [salonId, daysToRender, fetchWeeklyAppointments]);
+
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    const amount = isMobile ? 1 : 7;
+    newDate.setDate(currentDate.getDate() + (direction === 'next' ? amount : -amount));
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => setCurrentDate(new Date());
+
   const weekLabel = useMemo(() => {
     if (isMobile) {
       return currentDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
@@ -103,21 +157,21 @@ export default function AgendaPage() {
 
   const showToast = (msg: string) => setToastMsg(msg);
 
-  // Status Colors for the left border
+  // Status Colors for the left border (Rule #4)
   const statusColors: Record<AppointmentStatus, string> = {
-    confirmado: "bg-green-500",
-    pendente: "bg-amber-500",
-    cancelado: "bg-red-500",
-    concluido: "bg-slate-500"
+    confirmado: "bg-green-500", // verde
+    pendente: "bg-amber-500",   // âmbar
+    cancelado: "bg-red-500",    // vermelho (opaco aplicado no card)
+    concluido: "bg-slate-400"   // cinza
   };
 
-  const getPosAndHeight = (startTime: string, duration: number) => {
+  const getPosAndHeight = (startTime: string, MathMinutes: number) => {
+    // startTime is HH:MM:SS format
     const [h, m] = startTime.split(":").map(Number);
     const startMinutes = (h - START_HOUR) * 60 + m;
     
-    // Position = (startMinutes / duration of one slot) * slot height in pixels
     const top = (startMinutes / SLOT_DURATION_MIN) * SLOT_HEIGHT_PX;
-    const height = (duration / SLOT_DURATION_MIN) * SLOT_HEIGHT_PX;
+    const height = (MathMinutes / SLOT_DURATION_MIN) * SLOT_HEIGHT_PX;
     return { top, height };
   };
 
@@ -125,7 +179,10 @@ export default function AgendaPage() {
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">Agenda</h2>
+        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          Agenda Semanal
+          {isLoading && <RefreshCw className="w-4 h-4 text-brand animate-spin" />}
+        </h2>
         
         <div className="flex items-center gap-2 sm:gap-4 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
           <Button variant="ghost" onClick={() => navigateDate('prev')} className="px-2" title="Anterior">
@@ -207,7 +264,7 @@ export default function AgendaPage() {
 
               {daysToRender.map((date, colIndex) => {
                 const dateStr = date.toISOString().split("T")[0];
-                const dayAppointments = mockAppointments.filter(a => a.date === dateStr);
+                const dayAppointments = appointments.filter(a => a.data === dateStr);
 
                 return (
                   <div key={colIndex} className="relative border-l first:border-l-0 border-slate-200 z-10 p-1">
@@ -229,28 +286,29 @@ export default function AgendaPage() {
 
                     {/* Appointment Cards */}
                     {dayAppointments.map(app => {
-                      const { top, height } = getPosAndHeight(app.startTime, app.durationMinutes);
+                      const duracao = app.services?.duracao_minutos || 60;
+                      const { top, height } = getPosAndHeight(app.hora_inicio, duracao);
                       const isCanceled = app.status === "cancelado";
 
                       return (
                         <div
                           key={app.id}
-                          onClick={() => showToast(`Editando agendamento: ${app.clientName}`)}
-                          className={`absolute left-1 right-2 rounded-lg bg-white overflow-hidden shadow-sm border border-slate-100 cursor-pointer 
+                          onClick={() => showToast(`Agendamento de ${app.clients?.nome || 'Desconhecido'}`)}
+                          className={`absolute left-1 right-2 rounded-lg bg-white overflow-hidden shadow-sm border border-slate-200 cursor-pointer 
                             transition-transform hover:scale-[1.02] hover:shadow-md z-10 flex
-                            ${isCanceled ? 'opacity-50 grayscale' : ''}`}
+                            ${isCanceled ? 'opacity-40 grayscale' : ''}`}
                           style={{
                             top: `${top}px`,
-                            height: `${height - 4}px`, // slight gap between adjacent cards
+                            height: `${Math.max(height - 4, 30)}px`, // no min height to render very short slots gracefully
                           }}
                         >
-                          <div className={`w-1 shrink-0 ${statusColors[app.status]}`} />
-                          <div className="p-2 overflow-hidden w-full flex flex-col">
+                          <div className={`w-1.5 shrink-0 ${statusColors[app.status]}`} />
+                          <div className="p-2 overflow-hidden w-full flex flex-col justify-center">
                             <span className={`text-sm font-bold text-slate-800 truncate ${isCanceled ? 'line-through text-slate-500' : ''}`}>
-                              {app.clientName}
+                              {app.clients?.nome || "Online..."}
                             </span>
-                            <span className={`text-xs truncate ${isCanceled ? 'line-through text-slate-400' : 'text-slate-500'}`}>
-                              {app.startTime} • {app.serviceName}
+                            <span className={`text-[10px] sm:text-xs truncate ${isCanceled ? 'line-through text-slate-400' : 'text-slate-500'}`}>
+                              {app.hora_inicio.substring(0,5)} • {app.services?.nome || "Público"}
                             </span>
                           </div>
                         </div>

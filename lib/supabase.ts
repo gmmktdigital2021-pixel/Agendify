@@ -139,6 +139,42 @@ export async function getAppointments(salonId: string, dateStart?: string, dateE
   if (error) throw error;
   return data;
 }
+
+export async function createFullAppointment(
+  salonId: string, 
+  clientData: { nome: string, telefone: string }, 
+  appointmentData: Partial<Appointment>
+) {
+  // 1. Tentar encontrar cliente existente pelo telefone no salão
+  let { data: existingClient } = await db.clients
+    .select('id')
+    .eq('salon_id', salonId)
+    .eq('telefone', clientData.telefone)
+    .maybeSingle();
+
+  let clientId = existingClient?.id;
+
+  // 2. Criar ou Atualizar
+  if (!clientId) {
+    const { data: newClient, error: clientErr } = await db.clients
+      .insert({ salon_id: salonId, nome: clientData.nome, telefone: clientData.telefone })
+      .select('id').single();
+    if (clientErr) throw clientErr;
+    clientId = newClient.id;
+  } else {
+    // Atualiza tracking visual de engajamento
+    await db.clients.update({ created_at: new Date().toISOString() }).eq('id', clientId);
+  }
+
+  // 3. Criar o agendamento de fato
+  const { data: newApp, error: appErr } = await db.appointments
+    .insert({ ...appointmentData, salon_id: salonId, client_id: clientId })
+    .select().single();
+    
+  if (appErr) throw appErr;
+  return newApp;
+}
+
 export async function createDbAppointment(appointment: Partial<Appointment>) {
   const { data, error } = await db.appointments.insert(appointment).select().single();
   if (error) throw error;
