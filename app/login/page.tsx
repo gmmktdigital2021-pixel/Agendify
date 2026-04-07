@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarCheck, ArrowLeft, MailCheck } from "lucide-react";
+import { CalendarCheck, ArrowLeft, MailCheck, Lock } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Card } from "@/components/Card";
@@ -15,8 +15,12 @@ function LoginContent() {
   const isCadastro = searchParams.get("modo") === "cadastro";
   
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [usePassword, setUsePassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [showSignUpOption, setShowSignUpOption] = useState(false);
 
   useEffect(() => {
     // Se usuário já autenticado ao visitar /login: redirecionar automaticamente para /dashboard
@@ -27,7 +31,7 @@ function LoginContent() {
           router.push("/dashboard");
         }
       } catch {
-        // Ignora erro em modo mock se não tiver supabase real
+        // Ignora erro
       }
     };
     checkUser();
@@ -36,23 +40,73 @@ function LoginContent() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setAuthError("");
+    setShowSignUpOption(false);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-        },
-      });
+      if (!usePassword) {
+        // Fluxo Original: Magic Link
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+          },
+        });
 
-      if (error) {
-        console.warn("Supabase auth error:", error.message);
-        // Em ambiente mockado, forçamos o sucesso na UI mesmo se der erro (ex: credenciais vazias)
+        if (error) {
+          console.warn("Supabase auth error:", error.message);
+        }
+        setSuccess(true);
+      } else {
+        // Fluxo Novo: Senha
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) {
+          if (error.message.toLowerCase().includes("invalid credentials") || error.message.toLowerCase().includes("invalid login")) {
+            setAuthError("Senha incorreta ou usuário não encontrado.");
+            setShowSignUpOption(true);
+            setLoading(false);
+            return;
+          }
+          throw error;
+        }
+
+        if (data.session) {
+          router.push("/dashboard");
+        }
       }
-      setSuccess(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setSuccess(true); // Força sucesso para mockup
+      if (!usePassword) {
+        setSuccess(true); 
+      } else {
+        setAuthError(err.message || "Erro ao fazer login");
+      }
+    } finally {
+      if (!showSignUpOption) setLoading(false);
+    }
+  };
+
+  const handleCreatePassword = async () => {
+    setLoading(true);
+    setAuthError("");
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+      if (signUpError) {
+         if (signUpError.message.toLowerCase().includes("already registered")) {
+            throw new Error("Este e-mail já possui conta. Tente a senha original ou recupere via Magic Link.");
+         }
+         throw signUpError;
+      }
+      
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
+      
+      if (data?.session) {
+        router.push("/dashboard");
+      }
+    } catch (e: any) {
+      setAuthError(e.message || "Erro ao criar conta com senha.");
     } finally {
       setLoading(false);
     }
@@ -77,11 +131,17 @@ function LoginContent() {
               <p className="text-sm text-slate-500">
                 {isCadastro 
                   ? "Grátis, sem cartão de crédito." 
-                  : "Enviamos um link mágico para o seu e-mail. Leva menos de 1 minuto."}
+                  : (usePassword ? "Digite suas credenciais abaixo." : "Enviamos um link mágico para o seu e-mail. Leva menos de 1 minuto.")}
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            {authError && (
+              <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-lg text-sm mb-5 text-center font-bold">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
               <Input
                 label="Seu e-mail"
                 type="email"
@@ -91,9 +151,46 @@ function LoginContent() {
                 required
               />
               
-              <Button type="submit" variant="primary" className="h-11 w-full" disabled={loading}>
-                {loading ? "Enviando..." : "Entrar com link mágico"}
-              </Button>
+              {usePassword && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Input
+                    label="Sua Senha"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+              
+              {!showSignUpOption ? (
+                <Button type="submit" variant="primary" className="h-11 w-full mt-2" disabled={loading}>
+                  {loading ? "Processando..." : (usePassword ? "Entrar com senha" : "Entrar com link mágico")}
+                </Button>
+              ) : (
+                <div className="flex flex-col gap-2 mt-2">
+                   <Button type="button" onClick={handleCreatePassword} variant="primary" className="h-11 w-full bg-green-600 hover:bg-green-700" disabled={loading}>
+                     {loading ? "Criando..." : "Criar nova senha agora"}
+                   </Button>
+                   <Button type="button" onClick={() => setShowSignUpOption(false)} variant="ghost" className="h-10 w-full text-slate-500">
+                     Cancelar
+                   </Button>
+                </div>
+              )}
+              
+              {!showSignUpOption && (
+                <div className="text-center mt-1">
+                  <button 
+                    type="button" 
+                    onClick={() => { setUsePassword(!usePassword); setShowSignUpOption(false); setAuthError(""); }} 
+                    className="text-sm text-slate-500 hover:text-brand font-medium underline-offset-4 hover:underline transition-colors flex items-center justify-center gap-1.5 mx-auto"
+                  >
+                    <Lock className="w-3.5 h-3.5" /> 
+                    {usePassword ? "Prefiro usar link mágico" : "Prefiro usar senha"}
+                  </button>
+                </div>
+              )}
             </form>
 
             <div className="mt-6 flex items-center justify-center">
@@ -125,7 +222,7 @@ function LoginContent() {
             <Button 
               variant="ghost" 
               className="text-slate-500 w-full"
-              onClick={() => setSuccess(false)}
+              onClick={() => { setSuccess(false); setUsePassword(false); }}
             >
               Tentar outro e-mail
             </Button>
