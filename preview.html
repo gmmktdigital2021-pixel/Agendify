@@ -1,1161 +1,678 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agendify - Preview</title>
-    
-    <!-- Design System: Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        /* CSS PURO - Design System */
-        :root {
-            --brand: #7C3AED;
-            --brand-hover: #6D28D9;
-            --brand-light: #F5F3FF;
-            --bg: #F3F4F6;
-            --surface: #FFFFFF;
-            
-            --text-main: #111827;
-            --text-muted: #6B7280;
-            --text-light: #9CA3AF;
-            
-            --border: #E5E7EB;
-            
-            /* Status Colors */
-            --success: #22C55E;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --neutral: #374151;
-            
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-full: 9999px;
-            
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Utilidades */
-        .hidden { display: none !important; }
-        .flex { display: flex; }
-        .flex-col { flex-direction: column; }
-        .items-center { align-items: center; }
-        .justify-center { justify-content: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-2 { gap: 0.5rem; }
-        .gap-4 { gap: 1rem; }
-        .gap-6 { gap: 1.5rem; }
-        .w-full { width: 100%; }
-        .h-full { height: 100%; }
-        .text-center { text-align: center; }
-        
-        /* Tipografia */
-        h1, h2, h3 { color: var(--text-main); font-weight: 700; }
-        .text-2xl { font-size: 1.5rem; }
-        .text-xl { font-size: 1.25rem; }
-        .text-sm { font-size: 0.875rem; }
-        .text-xs { font-size: 0.75rem; }
-        .text-muted { color: var(--text-muted); }
-        .text-brand { color: var(--brand); }
-        .font-bold { font-weight: 700; }
-        .font-semibold { font-weight: 600; }
-        .font-medium { font-weight: 500; }
-
-        /* Botões */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            outline: none;
-        }
-        .btn-primary {
-            background-color: var(--brand);
-            color: white;
-        }
-        .btn-primary:hover { background-color: var(--brand-hover); }
-        .btn-secondary {
-            background-color: var(--brand-light);
-            color: var(--brand);
-        }
-        .btn-secondary:hover { background-color: #EDE9FE; }
-        .btn-ghost {
-            background-color: transparent;
-            color: var(--text-muted);
-        }
-        .btn-ghost:hover { background-color: var(--border); color: var(--text-main); }
-        .btn-danger-ghost {
-            background-color: transparent;
-            color: var(--danger);
-        }
-        .btn-danger-ghost:hover { background-color: #FEE2E2; }
-        .btn-sm { padding: 0.5rem 0.75rem; font-size: 0.75rem; border-radius: var(--radius-sm); }
-        .btn-icon { padding: 0.5rem; border-radius: var(--radius-md); }
-
-        /* Inputs */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.375rem;
-            margin-bottom: 1rem;
-        }
-        .input-group label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-        .input, .select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            outline: none;
-            transition: border-color 0.2s;
-            background-color: var(--surface);
-        }
-        .input:focus, .select:focus {
-            border-color: var(--brand);
-            box-shadow: 0 0 0 3px var(--brand-light);
-        }
-
-        /* Cards */
-        .card {
-            background-color: var(--surface);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.625rem;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-confirmado { background-color: #DCFCE7; color: #166534; }
-        .badge-pendente { background-color: #FEF3C7; color: #92400E; }
-        .badge-cancelado { background-color: #FEE2E2; color: #991B1B; }
-        .badge-concluido { background-color: #F3F4F6; color: #374151; }
-
-        /* Avatares */
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-full);
-            background-color: var(--brand-light);
-            color: var(--brand);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.875rem;
-            flex-shrink: 0;
-        }
-
-        /* --- TELAS ESPECÍFICAS --- */
-        
-        /* Login */
-        #login-view {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: var(--bg);
-        }
-        .login-box {
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            text-align: center;
-        }
-        .login-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            color: var(--brand);
-        }
-
-        /* App Shell */
-        #app-view {
-            display: none;
-            height: 100vh;
-            width: 100%;
-        }
-        .app-container {
-            display: flex;
-            height: 100%;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 250px;
-            background-color: var(--brand);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .sidebar-header {
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 800;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 1.5rem;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .nav-link:hover {
-            color: white;
-            background-color: rgba(255,255,255,0.1);
-        }
-        .nav-link.active {
-            color: white;
-            background-color: rgba(255,255,255,0.15);
-            border-left: 4px solid white;
-        }
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 1.5rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg);
-            overflow: hidden;
-        }
-        .topbar {
-            height: 70px;
-            background-color: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            flex-shrink: 0;
-        }
-        .content-area {
-            flex-grow: 1;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        /* Dashboard specific */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background-color: var(--brand-light);
-            color: var(--brand);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* List Items */
-        .list-container {
-            background: var(--surface);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-        .list-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .list-item {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background-color 0.2s;
-        }
-        .list-item:hover { background-color: #F9FAFB; }
-        .list-item:last-child { border-bottom: none; }
-        
-        .item-info { display: flex; align-items: center; gap: 1rem; flex: 1; }
-        .item-details h4 { margin-bottom: 0.25rem; font-size: 0.875rem; }
-        .item-details p { color: var(--text-muted); font-size: 0.75rem; }
-        .item-actions { display: flex; gap: 0.5rem; }
-
-        /* Agenda Grid */
-        .agenda-grid {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            background: var(--surface);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            height: calc(100vh - 200px);
-        }
-        .agenda-header {
-            display: grid;
-            grid-template-columns: 80px repeat(7, 1fr);
-            border-bottom: 1px solid var(--border);
-            background: #F9FAFB;
-        }
-        .agenda-header-day {
-            padding: 1rem;
-            text-align: center;
-            border-left: 1px solid var(--border);
-        }
-        .agenda-body {
-            display: flex;
-            flex: 1;
-            overflow-y: auto;
-        }
-        .agenda-time-col {
-            width: 80px;
-            border-right: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-        .time-slot-label {
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            padding-top: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .agenda-days-container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            flex: 1;
-        }
-        .agenda-day-col {
-            border-right: 1px solid var(--border);
-            position: relative;
-        }
-        .agenda-day-col:last-child { border-right: none; }
-        .time-slot {
-            height: 60px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .time-slot:hover { background-color: var(--brand-light); }
-        
-        .agenda-card {
-            position: absolute;
-            left: 4px;
-            right: 4px;
-            padding: 0.5rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            border-left: 4px solid;
-            overflow: hidden;
-            background: var(--surface);
-        }
-        .agenda-card.status-confirmado { border-left-color: var(--success); }
-        .agenda-card.status-pendente { border-left-color: var(--warning); }
-        .agenda-card.status-cancelado { border-left-color: var(--danger); opacity: 0.6; }
-
-        /* Modal */
-        #modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 50;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        .modal-content {
-            background-color: var(--surface);
-            border-radius: var(--radius-lg);
-            width: 100%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-            animation: modalFadeIn 0.2s ease-out;
-        }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(10px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-body { padding: 1.5rem; }
-        .modal-footer {
-            padding: 1.5rem;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            background: #F9FAFB;
-            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-        }
-
-        /* Chips / Config */
-        .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .chip {
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-full);
-            background-color: var(--surface);
-            border: 1px solid var(--border);
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .chip.active {
-            background-color: var(--brand);
-            color: white;
-            border-color: var(--brand);
-        }
-
-        /* Toast */
-        #toast-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            z-index: 100;
-        }
-        .toast {
-            background-color: var(--text-main);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius-md);
-            font-size: 0.875rem;
-            font-weight: 500;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            animation: slideIn 0.3s ease-out;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendify - Preview Standalone</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F3F4F6; overflow-x: hidden; }
+    .hidden-view { display: none !important; }
+    .active-view { display: block; }
+    .toast-enter { animation: toastIn 0.3s ease-out forwards; }
+    .toast-exit { animation: toastOut 0.3s ease-in forwards; }
+    @keyframes toastIn { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes toastOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(100%); opacity: 0; } }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { brand: '#7C3AED', success: '#22C55E', warning: '#F59E0B', danger: '#EF4444', neutral: '#374151' } } }
+    }
+  </script>
 </head>
-<body>
+<body class="text-slate-800">
 
-    <!-- TELA DE LOGIN -->
-    <div id="login-view">
-        <div class="login-box">
-            <div class="login-logo">
-                <i data-lucide="calendar-check" style="width: 32px; height: 32px;"></i>
-                <h1 style="font-size: 1.75rem; font-weight: 800;">Agendify</h1>
+  <!-- TOAST CONTAINER -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2"></div>
+
+  <!-- VIEWS CONTAINER -->
+  <div id="app-container" class="w-full h-screen flex">
+    
+    <!-- LOGIN VIEW -->
+    <div id="view-login" class="active-view w-full h-screen flex items-center justify-center bg-[#F3F4F6]">
+      <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md text-center">
+        <div class="w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="calendar-check" class="w-8 h-8 text-brand"></i>
+        </div>
+        <h1 class="text-2xl font-bold mb-2">Entrar no Agendify</h1>
+        <p class="text-slate-500 mb-6 text-sm">Gerencie seu salão com facilidade.</p>
+        <input type="email" placeholder="Seu melhor e-mail" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl mb-4 outline-none focus:border-brand transition-colors" onkeydown="if(event.key==='Enter') login()">
+        <button onclick="login()" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand/90 transition-colors shadow-md shadow-brand/20">Entrar Expresso</button>
+      </div>
+    </div>
+
+    <!-- INTERNAL SYSTEM (SIDEBAR + CONTENT) -->
+    <div id="view-internal" class="hidden-view w-full h-screen flex flex-col md:flex-row">
+      <!-- SIDEBAR -->
+      <aside class="w-full md:w-64 bg-brand text-white flex flex-col shrink-0">
+        <div class="p-6 flex items-center gap-2">
+          <i data-lucide="calendar-check" class="w-6 h-6"></i>
+          <span class="font-bold text-xl">Agendify</span>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+          <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/15 font-bold transition-all text-left">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+          </button>
+          <button onclick="navigate('agenda')" id="nav-agenda" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-all text-left">
+            <div class="flex items-center gap-3"><i data-lucide="calendar" class="w-5 h-5"></i> Agenda</div>
+            <span id="badge-pendentes-sidebar" class="bg-indigo-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">2</span>
+          </button>
+          <button onclick="navigate('clientes')" id="nav-clientes" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-all text-left">
+            <i data-lucide="users" class="w-5 h-5"></i> Clientes
+          </button>
+          <button onclick="navigate('servicos')" id="nav-servicos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-all text-left">
+            <i data-lucide="scissors" class="w-5 h-5"></i> Serviços
+          </button>
+          <button onclick="navigate('config')" id="nav-config" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-all text-left">
+            <i data-lucide="settings" class="w-5 h-5"></i> Config.
+          </button>
+        </nav>
+        <div class="p-4 border-t border-white/10">
+          <button onclick="logout()" class="flex items-center gap-3 text-white/70 hover:text-white transition-colors w-full px-4 py-2 text-left">
+            <i data-lucide="log-out" class="w-5 h-5"></i> Sair
+          </button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="flex-1 bg-[#F3F4F6] overflow-y-auto custom-scroll p-4 sm:p-8">
+        
+        <!-- DASHBOARD -->
+        <div id="page-dashboard" class="page-view active-view space-y-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Visão Geral</h2>
+            <span class="text-sm font-medium text-slate-500">Hoje, <span id="current-date-span"></span></span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0"><i data-lucide="calendar-days"></i></div>
+              <div>
+                <p class="text-sm text-slate-500 font-medium">Atendimentos Hoje</p>
+                <p class="text-2xl font-bold" id="dash-atendimentos">0</p>
+              </div>
             </div>
-            
-            <div style="margin-bottom: 2rem;">
-                <h2 style="font-size: 1.25rem;">Acesse sua agenda</h2>
-                <p class="text-muted text-sm" style="margin-top: 0.5rem;">Insira seu formato de e-mail para continuar (mockup).</p>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0"><i data-lucide="dollar-sign"></i></div>
+              <div>
+                <p class="text-sm text-slate-500 font-medium">Faturamento</p>
+                <p class="text-2xl font-bold text-success" id="dash-faturamento">R$ 0,00</p>
+              </div>
             </div>
-
-            <form onsubmit="handleLogin(event)">
-                <div class="input-group" style="text-align: left;">
-                    <label>Seu e-mail</label>
-                    <input type="email" class="input" placeholder="voce@email.com" required>
-                </div>
-                
-                <button type="submit" class="btn btn-primary w-full" style="padding: 0.875rem; margin-top: 1rem;">
-                    Entrar no Agendify
-                </button>
-            </form>
-
-            <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem;">
-                <hr style="flex:1; border:0; border-top: 1px solid var(--border);">
-                <span class="text-sm text-light">ou</span>
-                <hr style="flex:1; border:0; border-top: 1px solid var(--border);">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+              <p class="text-sm font-bold text-slate-700 mb-1">Resumo Financeiro</p>
+              <p class="text-xs text-slate-500" id="dash-resumo-dia">Calculando...</p>
             </div>
+          </div>
 
-            <button type="button" class="btn btn-ghost w-full" style="margin-top: 1.5rem; color: var(--brand);" onclick="handleLogin(event)">
-                Criar conta grátis
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-8">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 class="font-bold text-lg">Agenda do Dia</h3>
+            </div>
+            <div id="dashboard-agenda-list" class="divide-y divide-slate-100">
+              <!-- Renderized by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- AGENDA SEMANAL -->
+        <div id="page-agenda" class="page-view hidden-view space-y-6 h-[calc(100vh-6rem)] flex flex-col">
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-2xl font-bold">Agenda Semanal</h2>
+          </div>
+          <div class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col relative">
+            <div class="flex border-b border-slate-200 bg-white">
+              <div class="w-16 shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50"><i data-lucide="clock" class="w-4 h-4 text-slate-400"></i></div>
+              <div class="flex-1 grid grid-cols-7" id="agenda-header-days"></div>
+            </div>
+            <div class="flex-1 overflow-y-auto relative custom-scroll">
+              <div class="flex relative min-h-[700px]">
+                <div class="w-16 shrink-0 bg-white border-r border-slate-200 left-0 z-20" id="agenda-time-labels"></div>
+                <div class="flex-1 grid grid-cols-7 relative" id="agenda-grid-days"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CLIENTES -->
+        <div id="page-clientes" class="page-view hidden-view space-y-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Clientes</h2>
+          </div>
+          <div class="grid grid-cols-1 gap-4" id="clientes-list">
+            <!-- Renderized by JS -->
+          </div>
+        </div>
+
+        <!-- SERVIÇOS -->
+        <div id="page-servicos" class="page-view hidden-view space-y-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Serviços</h2>
+            <button onclick="openModalServico()" class="bg-brand text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-brand/90 transition-colors shadow-md shadow-brand/20">
+              <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Serviço
             </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="servicos-list">
+            <!-- Renderized by JS -->
+          </div>
         </div>
+
+        <!-- CONFIGURAÇÕES -->
+        <div id="page-config" class="page-view hidden-view space-y-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Configurações</h2>
+          </div>
+          
+          <div class="bg-brand/5 border border-brand/20 p-6 rounded-2xl shadow-sm relative overflow-hidden">
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4"><i data-lucide="link" class="w-5 h-5 text-brand"></i> Link de Agendamento</h3>
+            <p class="text-sm text-slate-600 mb-4">Compartilhe este link com seus clientes para que eles marquem horários automaticamente.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input type="text" readonly id="config-link-input" value="agendify-plpd.vercel.app/agendar/bella-beauty-123" class="flex-1 px-4 py-3 bg-brand/10 border border-brand/20 rounded-xl text-brand font-bold outline-none">
+              <div class="flex gap-2">
+                <button onclick="copyPublicLink()" class="bg-brand text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-brand/90 transition-colors shadow-sm"><i data-lucide="copy" class="w-4 h-4"></i> Copiar</button>
+                <button onclick="testarLinkPublico()" class="bg-white border text-slate-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors shadow-sm"><i data-lucide="eye" class="w-4 h-4"></i> Testar link</button>
+              </div>
+            </div>
+            <button onclick="shareWhatsAppConfig()" class="mt-4 bg-[#25D366] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-green-600 transition-colors shadow-sm"><i data-lucide="message-circle" class="w-4 h-4"></i> Compartilhar no WhatsApp</button>
+          </div>
+        </div>
+      </main>
     </div>
 
-    <!-- SISTEMA INTERNO -->
-    <div id="app-view">
-        <div class="app-container">
+    <!-- PÚBLICO: FLUXO DE AGENDAMENTO (TESTE) -->
+    <div id="view-public" class="hidden-view w-full h-screen bg-[#F3F4F6] overflow-y-auto custom-scroll relative z-50 flex flex-col">
+      <div class="bg-brand py-6 w-full text-center shrink-0">
+        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg mx-auto mb-2"><i data-lucide="calendar-check" class="w-6 h-6 text-brand"></i></div>
+        <h1 class="text-white font-bold text-2xl drop-shadow-md">Bella Beauty Salão</h1>
+      </div>
+      
+      <div class="max-w-[500px] mx-auto w-full px-4 -mt-4 pb-12 flex-1">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden min-h-[500px] flex flex-col relative">
+          
+          <!-- PROGRESS -->
+          <div id="public-progress" class="bg-slate-50 border-b border-slate-100 flex items-center p-4">
+            <button id="btn-voltar-publico" onclick="publicStepPrev()" class="p-1 text-slate-400 hover:text-brand transition-colors mr-2 hidden"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+            <div class="flex-1 flex justify-center items-center gap-2" id="progress-bars">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="w-7"></div>
+          </div>
+
+          <!-- STEP 1: SERVIÇO -->
+          <div id="pub-step-1" class="pub-step p-6">
+            <h2 class="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2"><i data-lucide="check-circle-2" class="w-5 h-5 text-brand"></i> Escolha o serviço</h2>
+            <div class="space-y-3" id="pub-servicos-list"></div>
+          </div>
+
+          <!-- STEP 2: CLIENTE -->
+          <div id="pub-step-2" class="pub-step hidden-view p-6">
+            <h2 class="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2"><i data-lucide="user" class="w-5 h-5 text-brand"></i> Seus dados</h2>
+            <div class="space-y-5">
+              <div><label class="font-bold text-sm text-slate-700 block mb-1">Nome Completo *</label><input type="text" id="pub-nome" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-brand"></div>
+              <div><label class="font-bold text-sm text-slate-700 block mb-1">Telefone WhatsApp *</label><input type="text" id="pub-telefone" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-brand" placeholder="11999999999"></div>
+            </div>
+            <button onclick="publicStepNext()" class="w-full bg-brand text-white font-bold py-3 mt-8 rounded-xl shadow-md">Continuar</button>
+          </div>
+
+          <!-- STEP 3: DATA/HORA -->
+          <div id="pub-step-3" class="pub-step hidden-view p-6 flex flex-col h-full">
+            <h2 class="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2"><i data-lucide="calendar-days" class="w-5 h-5 text-brand"></i> Quando?</h2>
+            <input type="date" id="pub-data" class="w-full px-4 py-3 bg-brand/5 border-2 border-brand/20 text-brand font-bold rounded-xl outline-none mb-6" onchange="renderPublicTimeSlots()">
+            <div class="flex-1">
+              <h3 class="text-sm font-bold mb-3">Horários Livres:</h3>
+              <div class="grid grid-cols-3 gap-3" id="pub-slots-list"></div>
+            </div>
+            <button onclick="publicStepNext()" class="w-full bg-brand text-white font-bold py-3 mt-8 rounded-xl shadow-md">Revisar</button>
+          </div>
+
+          <!-- STEP 4: REVISÃO & SUCESSO -->
+          <div id="pub-step-4" class="pub-step hidden-view p-6 flex flex-col">
+            <div id="pub-revisao-view">
+              <h2 class="font-bold text-xl text-slate-800 mb-6">Última Revisão</h2>
+              <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-8">
+                <p id="rev-nome" class="font-bold mb-1"></p>
+                <div class="h-px bg-slate-200 w-full my-3"></div>
+                <div class="flex justify-between text-sm mb-2"><span class="text-slate-500">Serviço</span><span class="font-bold" id="rev-serv"></span></div>
+                <div class="flex justify-between text-sm mb-2"><span class="text-slate-500">Data e Hora</span><span class="font-bold text-brand bg-brand/10 px-2 rounded" id="rev-datahora"></span></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-500">Valor</span><span class="font-bold text-green-600" id="rev-val"></span></div>
+              </div>
+              <button onclick="confirmarAgendamentoPublico()" class="w-full bg-brand text-white font-bold py-3.5 rounded-xl shadow-md flex justify-center gap-2 items-center"><i data-lucide="check-circle-2" class="w-5 h-5"></i> Confirmar Agendamento</button>
+            </div>
             
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <i data-lucide="calendar-check"></i>
-                    Agendify
-                </div>
-                <nav style="padding: 1rem 0;">
-                    <a class="nav-link active" data-target="dashboard" onclick="navigate('dashboard')">
-                        <i data-lucide="layout-dashboard" style="width: 20px;"></i>
-                        Dashboard
-                    </a>
-                    <a class="nav-link" data-target="agenda" onclick="navigate('agenda')">
-                        <i data-lucide="calendar" style="width: 20px;"></i>
-                        Agenda
-                    </a>
-                    <a class="nav-link" data-target="clientes" onclick="navigate('clientes')">
-                        <i data-lucide="users" style="width: 20px;"></i>
-                        Clientes
-                    </a>
-                    <a class="nav-link" data-target="servicos" onclick="navigate('scissors')" onclick="navigate('servicos')">
-                        <i data-lucide="scissors" style="width: 20px;"></i>
-                        Serviços
-                    </a>
-                    <a class="nav-link" data-target="config" onclick="navigate('config')">
-                        <i data-lucide="settings" style="width: 20px;"></i>
-                        Configurações
-                    </a>
-                </nav>
-                <div class="sidebar-footer">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-                        <div class="avatar" style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); color: white;">EB</div>
-                        <div>
-                            <p style="font-size: 0.875rem; font-weight: 600;">Espaço Beleza</p>
-                            <p style="font-size: 0.75rem; color: rgba(255,255,255,0.6);">Plano Pro</p>
-                        </div>
-                    </div>
-                    <button class="btn btn-ghost w-full" style="color: rgba(255,255,255,0.7); justify-content: flex-start; padding-left: 0;" onclick="logout()">
-                        <i data-lucide="log-out" style="width: 16px;"></i> Sair
-                    </button>
-                </div>
-            </aside>
+            <div id="pub-sucesso-view" class="hidden-view flex flex-col items-center text-center py-6">
+              <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6"><i data-lucide="check-circle-2" class="w-10 h-10 text-success"></i></div>
+              <h2 class="text-2xl font-bold text-slate-800 mb-2">Agendamento Solicitado!</h2>
+              <p class="text-slate-500 mb-8">Aguarde a confirmação do salão.</p>
+              <button onclick="sairPreviewPublico()" class="text-brand font-bold hover:underline">Voltar ao Sistema Central</button>
+            </div>
+          </div>
 
-            <!-- Main Content Area -->
-            <main class="main-content">
-                
-                <header class="topbar">
-                    <h2 id="page-title">Dashboard</h2>
-                    <button class="btn btn-primary" onclick="openModal('agendamento-modal')">
-                        <i data-lucide="plus" style="width: 18px;"></i> Novo Agendamento
-                    </button>
-                </header>
-
-                <div class="content-area" id="content-container">
-                    
-                    <!-- VIEW: DASHBOARD -->
-                    <div id="view-dashboard" class="view-panel">
-                        <!-- Stats -->
-                        <div class="stats-grid">
-                            <div class="card stat-card">
-                                <div class="stat-icon"><i data-lucide="users"></i></div>
-                                <div>
-                                    <p class="text-sm text-muted font-medium">Atendimentos do dia</p>
-                                    <h3 class="text-2xl mt-1">5</h3>
-                                </div>
-                            </div>
-                            <div class="card stat-card">
-                                <div class="stat-icon"><i data-lucide="dollar-sign"></i></div>
-                                <div>
-                                    <p class="text-sm text-muted font-medium">Faturamento Hoje</p>
-                                    <h3 class="text-2xl mt-1">R$ 480,00</h3>
-                                </div>
-                            </div>
-                            <div class="card stat-card">
-                                <div class="stat-icon"><i data-lucide="clock"></i></div>
-                                <div>
-                                    <p class="text-sm text-muted font-medium">Horários Livres</p>
-                                    <h3 class="text-2xl mt-1">3</h3>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lista Agenda do Dia -->
-                        <div class="list-container">
-                            <div class="list-header">
-                                <h3>Agenda de Hoje</h3>
-                                <span class="text-sm text-muted">7 de Abril, 2026</span>
-                            </div>
-                            
-                            <!-- Item 1 -->
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="text-sm font-bold w-[60px]">09:00</div>
-                                    <div class="avatar">MS</div>
-                                    <div class="item-details">
-                                        <h4>Maria Silva</h4>
-                                        <p>Corte • 45 min</p>
-                                    </div>
-                                    <span class="badge badge-confirmado">Confirmado</span>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-ghost btn-icon" title="WhatsApp" onclick="showToast('Abrindo WhatsApp...')"><i data-lucide="message-circle" style="color: #22C55E;"></i></button>
-                                    <button class="btn btn-ghost btn-icon" title="Concluir" onclick="showToast('Status atualizado para Concluído')"><i data-lucide="check-circle"></i></button>
-                                    <button class="btn btn-ghost btn-icon" title="Editar" onclick="openModal('agendamento-modal')"><i data-lucide="edit-2"></i></button>
-                                </div>
-                            </div>
-
-                            <!-- Item 2 -->
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="text-sm font-bold w-[60px]">10:30</div>
-                                    <div class="avatar" style="background:#FEF3C7; color:#B45309">AS</div>
-                                    <div class="item-details">
-                                        <h4>Ana Souza</h4>
-                                        <p>Progressiva • 180 min</p>
-                                    </div>
-                                    <span class="badge badge-pendente">Pendente</span>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-ghost btn-icon" title="WhatsApp" onclick="showToast('Aviso enviado!')"><i data-lucide="message-circle" style="color: #22C55E;"></i></button>
-                                    <button class="btn btn-ghost btn-icon" title="Confirmar" onclick="showToast('Agendamento confirmado!')"><i data-lucide="check"></i></button>
-                                    <button class="btn btn-danger-ghost btn-icon" title="Cancelar" onclick="showToast('Agendamento Cancelado')"><i data-lucide="x"></i></button>
-                                </div>
-                            </div>
-
-                            <!-- Item Livre -->
-                            <div class="list-item" style="background-color: #F9FAFB; border-left: 4px solid var(--brand);">
-                                <div class="item-info">
-                                    <div class="text-sm font-bold w-[60px] text-brand">12:00</div>
-                                    <div class="item-details" style="padding-left: 1rem;">
-                                        <h4 class="text-brand">Horário Livre</h4>
-                                        <p>Disponível para agendamento</p>
-                                    </div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-primary btn-sm" onclick="openModal('agendamento-modal')">Agendar</button>
-                                </div>
-                            </div>
-
-                            <!-- Item 3 -->
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="text-sm font-bold w-[60px] text-muted line-through">14:00</div>
-                                    <div class="avatar" style="background:#FEE2E2; color:#991B1B">JP</div>
-                                    <div class="item-details opacity-50">
-                                        <h4 class="line-through">João Pereira</h4>
-                                        <p>Coloração • 120 min</p>
-                                    </div>
-                                    <span class="badge badge-cancelado">Cancelado</span>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-ghost btn-icon" title="Reagendar" onclick="openModal('agendamento-modal')"><i data-lucide="refresh-cw"></i></button>
-                                </div>
-                            </div>
-
-                            <!-- Item 4 -->
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="text-sm font-bold w-[60px] text-muted">16:30</div>
-                                    <div class="avatar" style="background:#F3F4F6; color:#4B5563">CM</div>
-                                    <div class="item-details">
-                                        <h4>Carla Mendes</h4>
-                                        <p>Coloração • 120 min</p>
-                                    </div>
-                                    <span class="badge badge-concluido">Concluído</span>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-ghost btn-icon" onclick="showToast('Abrindo recibo...')"><i data-lucide="receipt"></i></button>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- VIEW: AGENDA -->
-                    <div id="view-agenda" class="view-panel hidden">
-                        <div class="agenda-grid">
-                            <div class="agenda-header">
-                                <div class="agenda-header-day" style="border:none">
-                                    <i data-lucide="clock" class="text-muted" style="margin: 0 auto;"></i>
-                                </div>
-                                <div class="agenda-header-day">
-                                    <p class="text-xs font-bold text-muted uppercase">Seg</p>
-                                    <h3 class="text-xl">06</h3>
-                                </div>
-                                <div class="agenda-header-day" style="background:var(--brand-light)">
-                                    <p class="text-xs font-bold text-brand uppercase">Ter</p>
-                                    <h3 class="text-xl text-brand">07</h3>
-                                </div>
-                                <div class="agenda-header-day">
-                                    <p class="text-xs font-bold text-muted uppercase">Qua</p>
-                                    <h3 class="text-xl">08</h3>
-                                </div>
-                                <div class="agenda-header-day">
-                                    <p class="text-xs font-bold text-muted uppercase">Qui</p>
-                                    <h3 class="text-xl">09</h3>
-                                </div>
-                                <div class="agenda-header-day">
-                                    <p class="text-xs font-bold text-muted uppercase">Sex</p>
-                                    <h3 class="text-xl">10</h3>
-                                </div>
-                                <div class="agenda-header-day">
-                                    <p class="text-xs font-bold text-muted uppercase">Sáb</p>
-                                    <h3 class="text-xl">11</h3>
-                                </div>
-                                <div class="agenda-header-day">
-                                    <p class="text-xs font-bold text-muted uppercase">Dom</p>
-                                    <h3 class="text-xl">12</h3>
-                                </div>
-                            </div>
-                            <div class="agenda-body">
-                                <div class="agenda-time-col">
-                                    <div class="time-slot-label">08:00</div>
-                                    <div class="time-slot-label">09:00</div>
-                                    <div class="time-slot-label">10:00</div>
-                                    <div class="time-slot-label">11:00</div>
-                                    <div class="time-slot-label">12:00</div>
-                                    <div class="time-slot-label">13:00</div>
-                                    <div class="time-slot-label">14:00</div>
-                                    <div class="time-slot-label">15:00</div>
-                                    <div class="time-slot-label">16:00</div>
-                                    <div class="time-slot-label">17:00</div>
-                                    <div class="time-slot-label">18:00</div>
-                                </div>
-                                <div class="agenda-days-container">
-                                    <!-- Dommy columns -->
-                                    <div class="agenda-day-col"><div class="time-slot" onclick="openModal('agendamento-modal')"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div></div>
-                                    <div class="agenda-day-col" style="background:#F9FAFB">
-                                        <div class="time-slot" onclick="openModal('agendamento-modal')"></div>
-                                        <div class="time-slot" onclick="openModal('agendamento-modal')"></div>
-                                        <div class="time-slot" onclick="openModal('agendamento-modal')"></div>
-                                        <!-- Card 09:00 -> 09:45 -->
-                                        <div class="agenda-card status-confirmado" style="top: 60px; height: 45px;" onclick="showToast('Maria Silva - Confirmado')">
-                                            <strong>Maria Silva</strong><br>Corte
-                                        </div>
-                                        <!-- Card 10:30 -> 13:30 -->
-                                        <div class="agenda-card status-pendente" style="top: 150px; height: 180px;" onclick="showToast('Ana Souza - Pendente')">
-                                            <strong>Ana Souza</strong><br>Progressiva
-                                        </div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                        <div class="time-slot"></div>
-                                    </div>
-                                    <div class="agenda-day-col"><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div></div>
-                                    <div class="agenda-day-col"><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div></div>
-                                    <div class="agenda-day-col"><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div></div>
-                                    <div class="agenda-day-col"><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div></div>
-                                    <div class="agenda-day-col"><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div><div class="time-slot"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- VIEW: CLIENTES -->
-                    <div id="view-clientes" class="view-panel hidden">
-                        <div class="list-container">
-                            <div class="list-header">
-                                <div style="display:flex; gap:1rem; align-items:center;">
-                                    <div class="input-group" style="margin:0;">
-                                        <input type="text" class="input" placeholder="Buscar cliente..." style="width: 300px;">
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary" onclick="showToast('Modal Novo Cliente Aberto')"><i data-lucide="plus"></i> Novo Cliente</button>
-                            </div>
-                            
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="avatar">MS</div>
-                                    <div class="item-details">
-                                        <h4>Maria Silva</h4>
-                                        <p>(11) 98765-4321 • Último atendimento: Hoje</p>
-                                    </div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-ghost btn-icon" onclick="showToast('WhatsApp aberto')"><i data-lucide="message-circle" class="text-success"></i></button>
-                                    <button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="avatar" style="background:#FEF3C7; color:#B45309">AS</div>
-                                    <div class="item-details">
-                                        <h4>Ana Souza</h4>
-                                        <p>(11) 91234-5678 • Último atendimento: Nunca</p>
-                                    </div>
-                                </div>
-                                <div class="item-actions">
-                                    <button class="btn btn-ghost btn-icon"><i data-lucide="message-circle" class="text-success"></i></button>
-                                    <button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button>
-                                </div>
-                            </div>
-                            
-                            <!-- Repeat for others -->
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="avatar" style="background:#FEE2E2; color:#991B1B">JP</div>
-                                    <div class="item-details">
-                                        <h4>João Pereira</h4>
-                                        <p>(21) 99999-8888 • Último atendimento: 02/04/2026</p>
-                                    </div>
-                                </div>
-                                <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                            </div>
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="avatar" style="background:#F3F4F6; color:#4B5563">CM</div>
-                                    <div class="item-details">
-                                        <h4>Carla Mendes</h4>
-                                        <p>(31) 97777-6666 • Último atendimento: Hoje</p>
-                                    </div>
-                                </div>
-                                <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                            </div>
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="avatar">BA</div>
-                                    <div class="item-details">
-                                        <h4>Bia Alves</h4>
-                                        <p>(41) 95555-4444 • Último atendimento: 15/03/2026</p>
-                                    </div>
-                                </div>
-                                <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- VIEW: SERVIÇOS -->
-                    <div id="view-servicos" class="view-panel hidden">
-                        <div class="list-container">
-                            <div class="list-header">
-                                <h3>Seus Serviços</h3>
-                                <button class="btn btn-primary" onclick="showToast('Modal Novo Serviço Aberto')"><i data-lucide="plus"></i> Novo Serviço</button>
-                            </div>
-                            
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="item-details">
-                                        <h4 style="font-size: 1rem;">Corte</h4>
-                                    </div>
-                                </div>
-                                <div style="display:flex; gap: 2rem; align-items:center;">
-                                    <span class="text-sm font-medium"><i data-lucide="clock" style="width:14px; display:inline; margin-right:4px;"></i> 45 min</span>
-                                    <span class="text-sm font-bold text-brand" style="width: 80px;">R$ 80,00</span>
-                                    <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                                </div>
-                            </div>
-                            
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="item-details"><h4 style="font-size: 1rem;">Progressiva</h4></div>
-                                </div>
-                                <div style="display:flex; gap: 2rem; align-items:center;">
-                                    <span class="text-sm font-medium"><i data-lucide="clock" style="width:14px; display:inline; margin-right:4px;"></i> 180 min</span>
-                                    <span class="text-sm font-bold text-brand" style="width: 80px;">R$ 250,00</span>
-                                    <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                                </div>
-                            </div>
-
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="item-details"><h4 style="font-size: 1rem;">Coloração</h4></div>
-                                </div>
-                                <div style="display:flex; gap: 2rem; align-items:center;">
-                                    <span class="text-sm font-medium"><i data-lucide="clock" style="width:14px; display:inline; margin-right:4px;"></i> 120 min</span>
-                                    <span class="text-sm font-bold text-brand" style="width: 80px;">R$ 180,00</span>
-                                    <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                                </div>
-                            </div>
-
-                            <div class="list-item">
-                                <div class="item-info">
-                                    <div class="item-details"><h4 style="font-size: 1rem;">Manicure</h4></div>
-                                </div>
-                                <div style="display:flex; gap: 2rem; align-items:center;">
-                                    <span class="text-sm font-medium"><i data-lucide="clock" style="width:14px; display:inline; margin-right:4px;"></i> 60 min</span>
-                                    <span class="text-sm font-bold text-brand" style="width: 80px;">R$ 50,00</span>
-                                    <div class="item-actions"><button class="btn btn-ghost btn-icon"><i data-lucide="edit-2"></i></button></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- VIEW: CONFIGURAÇÕES -->
-                    <div id="view-config" class="view-panel hidden">
-                        <div class="card" style="max-width: 800px;">
-                            <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Perfil do Salão</h3>
-                            
-                            <form onsubmit="handleSaveConfig(event)">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                                    <div class="input-group">
-                                        <label>Nome do Salão ou Profissional</label>
-                                        <input type="text" class="input" value="Espaço Beleza" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>WhatsApp de Contato</label>
-                                        <input type="text" class="input" value="(11) 99999-0000" required>
-                                    </div>
-                                </div>
-
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.5rem;">
-                                    <div class="input-group">
-                                        <label>Horário de Abertura</label>
-                                        <input type="time" class="input" value="08:00" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Horário de Fechamento</label>
-                                        <input type="time" class="input" value="19:00" required>
-                                    </div>
-                                </div>
-
-                                <div class="input-group" style="margin-top: 0.5rem;">
-                                    <label>Dias de Funcionamento</label>
-                                    <div class="chip-group">
-                                        <div class="chip active" onclick="toggleChip(this)">Seg</div>
-                                        <div class="chip active" onclick="toggleChip(this)">Ter</div>
-                                        <div class="chip active" onclick="toggleChip(this)">Qua</div>
-                                        <div class="chip active" onclick="toggleChip(this)">Qui</div>
-                                        <div class="chip active" onclick="toggleChip(this)">Sex</div>
-                                        <div class="chip" onclick="toggleChip(this)">Sáb</div>
-                                        <div class="chip" onclick="toggleChip(this)">Dom</div>
-                                    </div>
-                                </div>
-
-                                <div class="input-group" style="margin-top: 1.5rem;">
-                                    <label>Mensagem Padrão do WhatsApp</label>
-                                    <p class="text-xs text-muted" style="margin-bottom: 0.5rem;">Variáveis: {nome}, {dia}, {hora}, {servico}</p>
-                                    <textarea class="input" rows="3">Oi {nome}, seu horário está confirmado para {dia} às {hora}</textarea>
-                                </div>
-
-                                <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-                                    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Salvar Configurações</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                </div>
-            </main>
         </div>
+      </div>
+      <button onclick="sairPreviewPublico()" class="fixed top-4 left-4 bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg z-[99]">◂ Fechar Modo Teste</button>
     </div>
+  </div>
 
-    <!-- MODAL DE AGENDAMENTO -->
-    <div id="modal-overlay" onclick="handleModalClick(event)">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Novo Agendamento</h3>
-                <button class="btn-ghost btn-icon" onclick="closeModal('agendamento-modal')"><i data-lucide="x"></i></button>
-            </div>
-            <div class="modal-body">
-                <form id="agendamento-form">
-                    <div class="input-group">
-                        <label>Cliente</label>
-                        <select class="select">
-                            <option value="">Selecione um cliente...</option>
-                            <option value="1">Maria Silva</option>
-                            <option value="2">Ana Souza</option>
-                            <option value="3">João Pereira</option>
-                            <option value="4">Carla Mendes</option>
-                            <option value="5">Bia Alves</option>
-                            <option disabled>──────</option>
-                            <option value="new">+ Cadastrar novo cliente</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Serviço</label>
-                        <select class="select">
-                            <option value="">Selecione um serviço...</option>
-                            <option value="1">Corte (45 min - R$ 80,00)</option>
-                            <option value="2">Progressiva (180 min - R$ 250,00)</option>
-                            <option value="3">Coloração (120 min - R$ 180,00)</option>
-                            <option value="4">Manicure (60 min - R$ 50,00)</option>
-                        </select>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div class="input-group">
-                            <label>Data</label>
-                            <input type="date" class="input" id="modal-date">
-                        </div>
-                        <div class="input-group">
-                            <label>Hora</label>
-                            <input type="time" class="input" value="09:00" step="1800">
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="closeModal('agendamento-modal')">Cancelar</button>
-                <button class="btn btn-primary" onclick="salvarAgendamento()">Salvar Agendamento</button>
-            </div>
+  <!-- MODAL ADD SERVIÇO -->
+  <div id="modal-servico" class="hidden-view fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in duration-200" onclick="event.stopPropagation()">
+      <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <h3 class="font-bold text-lg">Adicionar Serviço</h3>
+        <button onclick="closeModalServico()" class="text-slate-400 hover:text-slate-700 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div><label class="block text-sm font-bold mb-1">Nome do serviço</label><input type="text" id="svc-nome" class="w-full px-3 py-2 border rounded-lg outline-none focus:border-brand"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="block text-sm font-bold mb-1">Duração (min)</label><input type="number" id="svc-duracao" class="w-full px-3 py-2 border rounded-lg outline-none focus:border-brand"></div>
+          <div><label class="block text-sm font-bold mb-1">Preço (R$)</label><input type="number" id="svc-preco" class="w-full px-3 py-2 border rounded-lg outline-none focus:border-brand"></div>
         </div>
+      </div>
+      <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+        <button onclick="closeModalServico()" class="px-4 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-lg">Cancelar</button>
+        <button onclick="salvarServico()" class="px-4 py-2 bg-brand text-white font-bold hover:bg-brand/90 rounded-lg shadow-sm">Salvar Serviço</button>
+      </div>
     </div>
+  </div>
 
-    <!-- TOAST CONTAINER -->
-    <div id="toast-container"></div>
+  <!-- SCRIPT LÓGICO COMPLETO -->
+  <script>
+    // --- ESTADO GLOBAL ---
+    // Mocks iniciais
+    let servicos = [
+      { id: 1, nome: "Corte Feminino", duracao: 60, preco: 80, icone: "✂️" },
+      { id: 2, nome: "Progressiva", duracao: 120, preco: 250, icone: "✨" },
+      { id: 3, nome: "Manicure", duracao: 45, preco: 40, icone: "💅" }
+    ];
+    let clientes = [
+      { id: 1, nome: "Maria Silva", telefone: "11999999991", link: false },
+      { id: 2, nome: "Ana Souza", telefone: "11988888882", link: false },
+      { id: 3, nome: "João Pereira", telefone: "11977777773", link: false },
+      { id: 4, nome: "Carla Mendes", telefone: "11966666664", link: false },
+      { id: 5, nome: "Bia Alves", telefone: "11955555555", link: true }
+    ];
+    let appointments = [
+      { id: 1, hora: "09:00", cliente: "Maria Silva", servico_id: 1, status: "concluido", viaLink: false, today: true },
+      { id: 2, hora: "10:30", cliente: "Ana Souza", servico_id: 2, status: "confirmado", viaLink: false, today: true },
+      { id: 3, hora: "13:00", cliente: "João Pereira", servico_id: 1, status: "cancelado", viaLink: false, today: true },
+      { id: 4, hora: "15:00", cliente: "Carla Mendes", servico_id: 3, status: "pendente", viaLink: true, today: true },
+      { id: 5, hora: "10:00", cliente: "Bia Alves", servico_id: 2, status: "pendente", viaLink: true, today: false, dia: 1 } // amanhã
+    ];
 
-    <!-- SCRIPT DO PROTÓTIPO -->
-    <script>
-        // Init Lucide Icons
-        lucide.createIcons();
+    const formatGana = (v) => `R$ ${parseFloat(v).toFixed(2).replace('.', ',')}`;
+    const findSvc = (id) => servicos.find(s => s.id === id);
 
-        // Inicializa input de data com hoje
-        document.getElementById('modal-date').valueAsDate = new Date();
+    // --- FUNÇÕES UTILITÁRIAS ---
+    function toast(msg) {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = "bg-slate-800 text-white font-bold px-4 py-3 rounded-xl shadow-xl text-sm flex items-center gap-2 toast-enter";
+      el.innerHTML = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.classList.remove('toast-enter');
+        el.classList.add('toast-exit');
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
 
-        // Funções de Navegação e State
-        function handleLogin(e) {
-            e.preventDefault();
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('app-view').style.display = 'block';
-            showToast('Bem vindo ao Agendify!');
-            // Atualiza icones após mostrar block
-            lucide.createIcons();
+    function switchView(id) {
+      document.querySelectorAll('.page-view').forEach(e => { e.classList.add('hidden-view'); e.classList.remove('active-view'); });
+      document.getElementById('page-' + id).classList.remove('hidden-view');
+      document.getElementById('page-' + id).classList.add('active-view');
+      
+      document.querySelectorAll('.nav-btn').forEach(e => { e.classList.remove('bg-white/15', 'text-white'); e.classList.add('text-white/70'); });
+      document.getElementById('nav-' + id).classList.remove('text-white/70');
+      document.getElementById('nav-' + id).classList.add('bg-white/15', 'text-white');
+    }
+
+    function login() {
+      document.getElementById('view-login').classList.remove('active-view');
+      document.getElementById('view-login').classList.add('hidden-view');
+      document.getElementById('view-internal').classList.remove('hidden-view');
+      document.getElementById('view-internal').classList.add('active-view');
+      navigate('dashboard');
+      toast("✅ Bem-vindo de volta!");
+    }
+
+    function logout() {
+      document.getElementById('view-internal').classList.add('hidden-view');
+      document.getElementById('view-login').classList.remove('hidden-view');
+      document.getElementById('view-login').classList.add('active-view');
+    }
+
+    function navigate(id) {
+      switchView(id);
+      if(id === 'dashboard') renderDashboard();
+      if(id === 'servicos') renderServicos();
+      if(id === 'clientes') renderClientes();
+      if(id === 'agenda') renderAgendaSemanal();
+    }
+
+    // --- DASHBOARD LOGIC ---
+    function calcMetrics() {
+      const todayApps = appointments.filter(a => a.today);
+      const con = todayApps.filter(a => a.status === 'concluido');
+      const fat = con.reduce((acc, curr) => acc + findSvc(curr.servico_id).preco, 0);
+      
+      const cfm = todayApps.filter(a => a.status === 'confirmado').length;
+      const cnc = todayApps.filter(a => a.status === 'cancelado').length;
+      const pen = todayApps.filter(a => a.status === 'pendente').length;
+      const dCon = con.length;
+      
+      document.getElementById('dash-faturamento').innerText = formatGana(fat);
+      document.getElementById('dash-atendimentos').innerText = cfm + dCon;
+      document.getElementById('dash-resumo-dia').innerHTML = `<span class="text-success font-bold">${cfm} confirmados</span> • <span class="font-bold text-slate-600">${dCon} concluídos</span> • <span class="text-danger font-bold">${cnc} cancelados</span> • <span class="text-warning font-bold">${pen} pendentes</span>`;
+      
+      const globalPen = appointments.filter(a => a.status === 'pendente').length;
+      const sbBadge = document.getElementById('badge-pendentes-sidebar');
+      sbBadge.innerText = globalPen;
+      if(globalPen > 0) sbBadge.style.display = 'block'; else sbBadge.style.display = 'none';
+      
+      const dt = new Date();
+      document.getElementById('current-date-span').innerText = dt.toLocaleDateString('pt-BR');
+    }
+
+    function changeAppStatus(id, newStatus) {
+      const app = appointments.find(a => a.id === id);
+      if(!app) return;
+      app.status = newStatus;
+      
+      if(newStatus === 'concluido') toast(`✅ Concluído! ${formatGana(findSvc(app.servico_id).preco)} adicionado ao faturamento.`);
+      if(newStatus === 'confirmado') toast("✅ Agendamento confirmado!");
+      if(newStatus === 'cancelado') toast("🛑 Agendamento cancelado com sucesso.");
+      
+      renderDashboard();
+    }
+
+    function openWpp(nome) { window.open(`https://wa.me/?text=Olá ${nome}`, '_blank'); toast("📱 Abrindo WhatsApp..."); }
+
+    function renderDashboard() {
+      calcMetrics();
+      const list = document.getElementById('dashboard-agenda-list');
+      const todayApps = appointments.filter(a => a.today).sort((a,b) => a.hora.localeCompare(b.hora));
+      
+      let html = '';
+      const statusMap = {
+        'pendente': { color: 'bg-warning text-white', label: 'Pendente' },
+        'confirmado': { color: 'bg-success text-white', label: 'Confirmado' },
+        'cancelado': { color: 'bg-danger text-white', label: 'Cancelado' },
+        'concluido': { color: 'bg-neutral text-white', label: 'Concluído' }
+      };
+
+      todayApps.forEach(a => {
+        const svc = findSvc(a.servico_id);
+        const sM = statusMap[a.status];
+        const isCanc = a.status === 'cancelado';
+        
+        let btns = '';
+        if(a.status === 'pendente') {
+          btns = `
+            <button onclick="changeAppStatus(${a.id}, 'confirmado')" class="px-3 py-1.5 bg-success text-white text-xs font-bold rounded-lg shrink-0">Confirmar</button>
+            <button onclick="openWpp('${a.cliente}')" class="px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] text-xs font-bold rounded-lg shrink-0">WhatsApp</button>
+            <button onclick="changeAppStatus(${a.id}, 'cancelado')" class="px-3 py-1.5 border border-danger text-danger text-xs font-bold rounded-lg shrink-0">Cancelar</button>
+          `;
+        } else if(a.status === 'confirmado') {
+          btns = `
+            <button onclick="changeAppStatus(${a.id}, 'concluido')" class="px-3 py-1.5 border border-success text-success text-xs font-bold rounded-lg shrink-0">Concluir</button>
+            <button onclick="openWpp('${a.cliente}')" class="px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] text-xs font-bold rounded-lg shrink-0">WhatsApp</button>
+            <button onclick="changeAppStatus(${a.id}, 'cancelado')" class="px-3 py-1.5 border border-danger text-danger text-xs font-bold rounded-lg shrink-0">Cancelar</button>
+          `;
+        } else if (a.status === 'concluido') {
+          btns = `<button onclick="openWpp('${a.cliente}')" class="px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] text-xs font-bold rounded-lg shrink-0">WhatsApp Recibo</button>`;
+        } else if(a.status === 'cancelado') {
+          btns = `<button onclick="toast('Em breve: Modal Reagendamento')" class="px-3 py-1.5 bg-slate-100 text-slate-500 text-xs font-bold rounded-lg shrink-0">Reagendar</button>`;
         }
 
-        function logout() {
-            document.getElementById('app-view').style.display = 'none';
-            document.getElementById('login-view').classList.remove('hidden');
-            showToast('Sessão encerrada.');
+        const linkBadge = a.viaLink ? `<span class="bg-brand/10 text-brand text-[10px] px-2 py-0.5 rounded-full font-bold ml-2">via link</span>` : '';
+
+        html += `
+          <div class="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors hover:bg-slate-50 ${isCanc ? 'opacity-50 grayscale bg-red-50/10' : ''}">
+            <div class="flex items-center gap-4">
+              <span class="font-bold text-lg w-12 ${isCanc ? 'line-through text-slate-400' : 'text-slate-800'}">${a.hora}</span>
+              <div class="flex flex-col">
+                <span class="font-bold text-slate-800 flex items-center ${isCanc ? 'line-through text-slate-500' : ''}">${a.cliente}</span>
+                <span class="text-xs text-slate-500 mt-1">${svc.nome} • <span class="font-bold text-slate-700">${formatGana(svc.preco)}</span></span>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="${sM.color} text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md flex items-center">${sM.label} ${linkBadge}</span>
+              <div class="flex flex-wrap items-center gap-2 ml-2">${btns}</div>
+            </div>
+          </div>
+        `;
+      });
+      list.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- SERVIÇOS LOGIC ---
+    function renderServicos() {
+      const list = document.getElementById('servicos-list');
+      let h = '';
+      servicos.forEach(s => {
+        h += `
+          <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col relative group">
+            <button onclick="delServico(${s.id})" class="absolute top-3 right-3 text-slate-300 hover:text-danger opacity-0 group-hover:opacity-100 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            <span class="text-3xl mb-2">${s.icone}</span>
+            <span class="font-bold text-lg text-slate-800 mb-1">${s.nome}</span>
+            <span class="text-sm text-slate-500 flex items-center gap-1 mb-4"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${s.duracao} min</span>
+            <span class="font-bold text-slate-800 mt-auto pt-4 border-t border-slate-50">${formatGana(s.preco)}</span>
+          </div>
+        `;
+      });
+      list.innerHTML = h;
+      lucide.createIcons();
+    }
+    
+    function openModalServico() { document.getElementById('modal-servico').classList.remove('hidden-view'); }
+    function closeModalServico() { document.getElementById('modal-servico').classList.add('hidden-view'); }
+    function salvarServico() {
+      const n = document.getElementById('svc-nome').value;
+      const d = document.getElementById('svc-duracao').value;
+      const p = document.getElementById('svc-preco').value;
+      if(!n || !d || !p) return toast("Preencha todos os campos!");
+      servicos.push({ id: Math.random(), nome: n, duracao: parseInt(d), preco: parseFloat(p), icone: "✨" });
+      closeModalServico();
+      renderServicos();
+      toast("✅ Serviço adicionado com sucesso!");
+    }
+    function delServico(id) { servicos = servicos.filter(s => s.id !== id); renderServicos(); toast("🗑️ Serviço removido!"); }
+
+    // --- CLIENTES LOGIC ---
+    function renderClientes() {
+      const list = document.getElementById('clientes-list');
+      let h = '';
+      clientes.forEach(c => {
+        const linkBadge = c.link ? `<span class="bg-success/10 text-success text-[10px] font-bold px-2 py-0.5 rounded-full ml-2 border border-success/20">Novo — via link</span>` : '';
+        h += `
+          <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-brand/10 text-brand rounded-full flex items-center justify-center font-bold">${c.nome.substring(0,2).toUpperCase()}</div>
+              <div>
+                <p class="font-bold text-slate-800 flex items-center">${c.nome} ${linkBadge}</p>
+                <p class="text-sm text-slate-500">${c.telefone}</p>
+              </div>
+            </div>
+            <button onclick="openWpp('${c.nome}')" class="bg-[#25D366]/10 text-[#25D366] px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5"><i data-lucide="message-circle" class="w-4 h-4"></i> Conversar</button>
+          </div>
+        `;
+      });
+      list.innerHTML = h;
+      lucide.createIcons();
+    }
+
+    // --- AGENDA SEMANAL ---
+    function renderAgendaSemanal() {
+      const dNames = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+      let headerText = '';
+      const dt = new Date();
+      for(let i=0; i<7; i++) {
+        headerText += `<div class="py-2 flex flex-col items-center justify-center border-l first:border-l-0 ${i===0?'bg-brand/5':''}"><span class="text-[10px] font-bold text-slate-400 mb-0.5">${dNames[i]}</span><span class="text-lg font-bold ${i===0?'text-brand':'text-slate-800'}">${dt.getDate()+i}</span></div>`;
+      }
+      document.getElementById('agenda-header-days').innerHTML = headerText;
+
+      let times = '';
+      for(let h=8; h<=19; h++) times += `<div class="h-16 border-b border-slate-100 flex justify-center pt-1"><span class="text-xs text-slate-400 font-medium">${h}:00</span></div>`;
+      document.getElementById('agenda-time-labels').innerHTML = times;
+
+      let grid = '<div class="absolute inset-0 pointer-events-none opacity-50 z-0">';
+      for(let h=8; h<=19; h++) grid += `<div class="h-16 border-b border-slate-200 w-full"></div>`;
+      grid += '</div>';
+
+      const sC = {'confirmado':'bg-success','pendente':'bg-warning','concluido':'bg-slate-400', 'cancelado': 'bg-danger'};
+      
+      for(let i=0; i<7; i++) {
+        grid += `<div class="relative border-l first:border-l-0 border-slate-200 z-10 p-1 h-full cursor-pointer hover:bg-brand/5" onclick="abrirModalAgendaDia(${i})">`;
+        
+        // Puxar mock apps
+        appointments.forEach(a => {
+           let applyCol = -1;
+           if(a.today && i === 0) applyCol = 0;
+           if(a.dia === i) applyCol = i;
+           
+           if(applyCol === i && a.status !== 'cancelado') {
+             const [hh,mm] = a.hora.split(':').map(Number);
+             const top = ((hh-8)*60+mm) / 60 * 64;
+             const height = findSvc(a.servico_id).duracao / 60 * 64;
+             const via = a.viaLink ? '🔗 ' : '';
+             grid += `
+               <div class="absolute left-1 right-2 rounded-md bg-white border border-slate-200 shadow-sm overflow-hidden flex z-20 hover:scale-[1.02] transition-transform" style="top:${top}px; height:${height-2}px">
+                 <div class="w-1.5 shrink-0 ${sC[a.status]}"></div>
+                 <div class="p-1 px-1.5 flex flex-col justify-center overflow-hidden">
+                   <span class="text-[10px] font-bold text-slate-800 leading-tight truncate">${via}${a.cliente}</span>
+                   <span class="text-[9px] text-slate-500 truncate mt-0.5">${findSvc(a.servico_id).nome}</span>
+                 </div>
+               </div>
+             `;
+           }
+        });
+        grid += `</div>`;
+      }
+      document.getElementById('agenda-grid-days').innerHTML = grid;
+      lucide.createIcons();
+    }
+    window.abrirModalAgendaDia = (d) => { toast(`Agendar no dia da coluna ${d}`); }
+
+    // --- CONFIGURAÇÕES LOGIC ---
+    function copyPublicLink() {
+      const q = document.getElementById('config-link-input');
+      q.select(); document.execCommand('copy');
+      toast("✅ Link copiado!");
+    }
+    function shareWhatsAppConfig() { toast("📱 Abrindo WhatsApp..."); }
+
+    // --- FLUXO PÚBLICO (TESTE) ---
+    let pubState = { step: 1, svcId: null, nome: '', telefone: '', data: '', hora: '' };
+    
+    function testarLinkPublico() {
+      document.getElementById('view-internal').classList.add('hidden-view');
+      document.getElementById('view-public').classList.remove('hidden-view');
+      pubState = { step: 1, svcId: null, nome: '', telefone: '', data: '', hora: '' };
+      renderPublicSteps();
+    }
+    function sairPreviewPublico() {
+      document.getElementById('view-public').classList.add('hidden-view');
+      document.getElementById('view-internal').classList.remove('hidden-view');
+      navigate('dashboard'); // Refresh db
+      toast("Retornando ao painel interno.");
+    }
+    
+    function renderPublicSteps() {
+      // Progress
+      let pBars = '';
+      for(let i=1; i<=4; i++) pBars += `<div class="h-2 rounded-full transition-all ${i<=pubState.step?'w-8 bg-brand':'w-4 bg-slate-200'}"></div>`;
+      document.getElementById('progress-bars').innerHTML = pBars;
+      
+      const btnBack = document.getElementById('btn-voltar-publico');
+      if(pubState.step > 1 && pubState.step < 5) btnBack.classList.remove('hidden'); else btnBack.classList.add('hidden');
+
+      // Views Reset
+      document.querySelectorAll('.pub-step').forEach(e => e.classList.add('hidden-view'));
+      if(pubState.step < 5) document.getElementById('pub-step-'+pubState.step).classList.remove('hidden-view');
+      
+      // Specifick step renders
+      if(pubState.step === 1) {
+        let h = '';
+        servicos.forEach(s => {
+          h += `<div onclick="selectPubSvc(${s.id})" class="p-4 rounded-xl border-2 border-slate-100 hover:border-brand cursor-pointer hover:bg-brand/5 flex justify-between items-center transition-all">
+            <div class="flex items-center gap-3"><span class="text-2xl">${s.icone}</span><div><p class="font-bold text-slate-800">${s.nome}</p><p class="text-xs text-slate-500">${s.duracao} min</p></div></div>
+            <span class="font-bold">${formatGana(s.preco)}</span>
+          </div>`;
+        });
+        document.getElementById('pub-servicos-list').innerHTML = h;
+      }
+      
+      if(pubState.step === 4) {
+        document.getElementById('rev-nome').innerText = pubState.nome + " • " + pubState.telefone;
+        document.getElementById('rev-serv').innerText = findSvc(pubState.svcId).nome;
+        document.getElementById('rev-datahora').innerText = pubState.data.split('-').reverse().join('/') + " às " + pubState.hora;
+        document.getElementById('rev-val').innerText = formatGana(findSvc(pubState.svcId).preco);
+      }
+    }
+
+    function selectPubSvc(id) { pubState.svcId = id; publicStepNext(); }
+    
+    function publicStepNext() {
+      if(pubState.step === 2) {
+        pubState.nome = document.getElementById('pub-nome').value;
+        pubState.telefone = document.getElementById('pub-telefone').value;
+        if(!pubState.nome || !pubState.telefone) return toast("Preencha seus dados.");
+      }
+      if(pubState.step === 3) {
+        pubState.data = document.getElementById('pub-data').value;
+        if(!pubState.data || !pubState.hora) return toast("Selecione data e horário.");
+      }
+      pubState.step++;
+      renderPublicSteps();
+    }
+    
+    function publicStepPrev() { pubState.step--; renderPublicSteps(); }
+    
+    function renderPublicTimeSlots() {
+      pubState.hora = '';
+      const list = document.getElementById('pub-slots-list');
+      const d = document.getElementById('pub-data').value;
+      if(!d) { list.innerHTML=''; return; }
+      
+      let ts = ['09:00', '10:00', '11:00', '13:30', '15:00', '16:00', '17:30'];
+      let h='';
+      ts.forEach((t, i) => {
+        // mock occupy some
+        const occup = i === 1 || i === 4;
+        if(occup) {
+          h += `<button disabled class="py-2 rounded-xl text-sm font-bold text-slate-400 bg-slate-100 line-through opacity-50">${t}</button>`;
+        } else {
+          h += `<button onclick="selPubTime('${t}', this)" class="slot-btn py-2 rounded-xl text-sm font-bold border border-slate-200 text-slate-600 hover:text-brand hover:border-brand transition-colors">${t}</button>`;
         }
+      });
+      list.innerHTML = h;
+    }
+    
+    function selPubTime(t, el) {
+      pubState.hora = t;
+      document.querySelectorAll('.slot-btn').forEach(b => { b.classList.remove('bg-brand','text-white'); b.classList.add('bg-white','text-slate-600'); });
+      el.classList.remove('bg-white','text-slate-600');
+      el.classList.add('bg-brand','text-white');
+    }
+    
+    function confirmarAgendamentoPublico() {
+      // Logic requirement: Push pending app & new client
+      const nc = { id: Math.random(), nome: pubState.nome, telefone: pubState.telefone, link: true };
+      clientes.push(nc);
+      appointments.push({ id: Math.random(), hora: pubState.hora, cliente: pubState.nome, servico_id: pubState.svcId, status: 'pendente', viaLink: true, today: true });
+      
+      document.getElementById('pub-revisao-view').classList.add('hidden-view');
+      document.getElementById('pub-sucesso-view').classList.remove('hidden-view');
+      document.getElementById('public-progress').classList.add('hidden-view');
+      toast("✅ Solicitação enviada via hook mock!");
+    }
 
-        function navigate(viewId) {
-            // Esconde todos
-            document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
-            // Remove active classes
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            
-            // Mostra o atual
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
-            
-            // Ativa o menu
-            const navItem = document.querySelector(`.nav-link[data-target="${viewId}"]`);
-            if(navItem) navItem.classList.add('active');
-
-            // Atualiza Titulo
-            const titles = {
-                'dashboard': 'Dashboard',
-                'agenda': 'Agenda Semanal',
-                'clientes': 'Clientes',
-                'servicos': 'Serviços',
-                'config': 'Configurações'
-            };
-            document.getElementById('page-title').innerText = titles[viewId];
-        }
-
-        // Funções de Modal
-        function openModal(id) {
-            document.getElementById('modal-overlay').style.display = 'flex';
-        }
-
-        function closeModal(id) {
-            document.getElementById('modal-overlay').style.display = 'none';
-        }
-
-        function handleModalClick(e) {
-            if(e.target.id === 'modal-overlay') {
-                closeModal();
-            }
-        }
-
-        function salvarAgendamento() {
-            closeModal();
-            showToast('Agendamento salvo com sucesso!');
-        }
-
-        function handleSaveConfig(e) {
-            e.preventDefault();
-            showToast('Configurações do salão atualizadas!');
-        }
-
-        // Interação Chips
-        function toggleChip(element) {
-            element.classList.toggle('active');
-        }
-
-        // Sistema de Toast Padrão
-        function showToast(message) {
-            const container = document.getElementById('toast-container');
-            
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = `<i data-lucide="check-circle" style="width: 18px; color: #4ADE80;"></i> ${message}`;
-            
-            container.appendChild(toast);
-            lucide.createIcons(); // Atualiza icone do toast injetado
-
-            // Auto remover
-            setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.3s ease-out forwards';
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
-        }
-    </script>
+    // INIT
+    lucide.createIcons();
+  </script>
 </body>
 </html>

@@ -103,11 +103,13 @@ function LoginContent() {
             </div>
 
             <div className="mt-6">
-              <Link href={isCadastro ? "/login" : "/login?modo=cadastro"} className="block w-full">
-                <Button variant="secondary" className="w-full h-11 text-brand font-medium">
-                  {isCadastro ? "Já tenho uma conta" : "Criar conta grátis"}
-                </Button>
-              </Link>
+              <Button 
+                variant="secondary" 
+                className="w-full h-11 text-brand font-medium"
+                onClick={() => router.push(isCadastro ? '/login' : '/login?modo=cadastro')}
+              >
+                {isCadastro ? "Já tenho uma conta" : "Criar conta grátis"}
+              </Button>
             </div>
           </>
         ) : (
