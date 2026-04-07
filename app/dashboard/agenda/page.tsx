@@ -223,7 +223,7 @@ export default function AgendaPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-130px)]">
+    <div className="flex flex-col">
       {/* Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 shrink-0">
         <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -251,7 +251,7 @@ export default function AgendaPage() {
       </div>
 
       {/* Calendar Grid Container (flex-1 forces 100% remaining vertical space) */}
-      <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+      <div className="h-[calc(100vh-120px)] bg-white border border-slate-200 rounded-2xl shadow-sm overflow-y-auto flex flex-col custom-scrollbar">
         
         {/* Days Header */}
         <div className="flex border-b border-slate-200 bg-white shrink-0">
