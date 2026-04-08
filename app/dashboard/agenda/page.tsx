@@ -238,7 +238,6 @@ export default function AgendaPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 shrink-0">
         <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
           Agenda Semanal
-          {isLoading && <RefreshCw className="w-4 h-4 text-brand animate-spin" />}
         </h2>
         
         <div className="flex items-center gap-2 sm:gap-4 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">

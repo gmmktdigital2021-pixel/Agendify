@@ -23,7 +23,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   // Mocked Auth Initials until proper profile mapping
-  const [salonName, setSalonName] = useState("Carregando...");
+  const [salonName, setSalonName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");
   
