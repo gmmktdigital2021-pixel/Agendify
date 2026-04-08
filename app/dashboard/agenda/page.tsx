@@ -67,6 +67,27 @@ export default function AgendaPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const loadServices = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: salon } = await supabase
+        .from('salons')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      if (!salon) return
+      const { data: fetchedServices } = await supabase
+        .from('services')
+        .select('id, nome, duracao_minutos, preco')
+        .eq('salon_id', salon.id)
+        .order('nome')
+      console.log('Serviços carregados:', fetchedServices)
+      if (fetchedServices) setServices(fetchedServices)
+    }
+    loadServices()
+  }, [])
+
   const fetchWeeklyAppointments = useCallback(async (sid: string, starts: string, ends: string) => {
     setIsLoading(true);
     try {
@@ -441,14 +462,14 @@ export default function AgendaPage() {
                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-brand font-medium text-slate-700"
                  >
                    <option value="">Selecione um serviço...</option>
-                   {services.length === 0 ? (
-                     <option value="" disabled>Nenhum serviço cadastrado. Vá em Serviços para adicionar.</option>
-                   ) : (
-                     services.map(s => (
-                       <option key={s.id} value={s.id}>
-                         {s.nome} — {s.duracao_minutos}min — R$ {Number(s.preco || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                   {services && services.length > 0 ? (
+                     services.map((service) => (
+                       <option key={service.id} value={service.id}>
+                         {service.nome} — {service.duracao_minutos}min — R$ {service.preco}
                        </option>
                      ))
+                   ) : (
+                     <option disabled>Nenhum serviço encontrado</option>
                    )}
                  </select>
                </div>
