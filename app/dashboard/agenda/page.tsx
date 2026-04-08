@@ -181,15 +181,26 @@ export default function AgendaPage() {
     setFormData({ ...formData, data: dateStr, hora_inicio: timeStr, nome: "", telefone: "", service_id: "" });
     setModalOpen(true);
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    const { data: salon } = await supabase.from('salons').select('id').eq('user_id', session.user.id).single();
+    // Passo 1: buscar o usuário logado
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Passo 2: buscar o salon do usuário
+    const { data: salon } = await supabase
+      .from('salons')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    // Passo 3: buscar serviços usando o salon.id
     if (salon) {
       const { data: fetchedServices } = await supabase
         .from('services')
         .select('id, nome, duracao_minutos, preco')
         .eq('salon_id', salon.id)
         .order('nome');
+        
+      console.log('salon:', salon, 'services:', fetchedServices);
       if (fetchedServices) setServices(fetchedServices);
     }
   };
