@@ -108,10 +108,10 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* TOPO */}
           <div className="p-6">
-            <div className="flex items-center gap-2 mb-2">
+            <Link href="/dashboard" className="flex items-center gap-2 mb-2 hover:opacity-90 transition-opacity">
               <CalendarCheck className="w-6 h-6 text-white" />
               <span className="font-bold text-xl tracking-wide">Agendify</span>
-            </div>
+            </Link>
             <div className="text-sm text-white/80 font-medium truncate" title={salonName}>
               {salonName}
             </div>
