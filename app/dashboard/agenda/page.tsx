@@ -112,8 +112,6 @@ export default function AgendaPage() {
       
       if (salon) {
         setSalonId(salon.id);
-        const { data: svcs } = await db.services.select('*').eq('salon_id', salon.id);
-        if (svcs) setServices(svcs);
       }
     }
     init();
@@ -179,9 +177,21 @@ export default function AgendaPage() {
     return { top, height };
   };
 
-  const openSlotModal = (dateStr: string, timeStr: string) => {
+  const openSlotModal = async (dateStr: string, timeStr: string) => {
     setFormData({ ...formData, data: dateStr, hora_inicio: timeStr, nome: "", telefone: "", service_id: "" });
     setModalOpen(true);
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data: salon } = await supabase.from('salons').select('id').eq('user_id', session.user.id).single();
+    if (salon) {
+      const { data: fetchedServices } = await supabase
+        .from('services')
+        .select('id, nome, duracao_minutos, preco')
+        .eq('salon_id', salon.id)
+        .order('nome');
+      if (fetchedServices) setServices(fetchedServices);
+    }
   };
 
   const handleCreateAppointment = async () => {
@@ -418,12 +428,18 @@ export default function AgendaPage() {
                  <select 
                    value={formData.service_id} 
                    onChange={(e) => setFormData({...formData, service_id: e.target.value})}
-                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-brand font-medium"
+                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-brand font-medium text-slate-700"
                  >
                    <option value="">Selecione um serviço...</option>
-                   {services.map(s => (
-                     <option key={s.id} value={s.id}>{s.nome} ({s.duracao_minutos} min) • R$ {s.preco?.toFixed(2)}</option>
-                   ))}
+                   {services.length === 0 ? (
+                     <option value="" disabled>Nenhum serviço cadastrado. Vá em Serviços para adicionar.</option>
+                   ) : (
+                     services.map(s => (
+                       <option key={s.id} value={s.id}>
+                         {s.nome} — {s.duracao_minutos}min — R$ {Number(s.preco || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                       </option>
+                     ))
+                   )}
                  </select>
                </div>
             </div>
