@@ -28,8 +28,8 @@ body {
 
 /* Scrollbar minimalista global */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: #D1D5DB transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 *::-webkit-scrollbar {
@@ -42,11 +42,16 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
+  background: transparent;
   border-radius: 999px;
+  transition: background 0.2s ease;
 }
 
-*::-webkit-scrollbar-thumb:hover {
+*:hover::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+}
+
+*:hover::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
 }
 
