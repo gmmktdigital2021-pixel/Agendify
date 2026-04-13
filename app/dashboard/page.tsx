@@ -45,6 +45,9 @@ export default function DashboardPage() {
   const [customEnd, setCustomEnd] = useState("");
   const [appliedCustomStart, setAppliedCustomStart] = useState("");
   const [appliedCustomEnd, setAppliedCustomEnd] = useState("");
+  
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [isListViewAnimating, setIsListViewAnimating] = useState(false);
 
   const todayDateObj = new Date();
   const year = todayDateObj.getFullYear();
@@ -274,14 +277,84 @@ export default function DashboardPage() {
     return null;
   };
 
-  // Search local filters
+  useEffect(() => {
+    setStatusFilter('todos');
+  }, [filter, startSql, endSql]);
+
+  const handleChipClick = (id: string) => {
+    if (id === statusFilter) return;
+    setIsListViewAnimating(true);
+    setTimeout(() => {
+      setStatusFilter(id);
+      setIsListViewAnimating(false);
+    }, 150);
+  };
+
+  const chipsConfig = useMemo(() => [
+    { id: 'todos', label: 'Todos', 
+      match: (a: AppointmentWithRelations) => a.status !== 'cancelado', 
+      count: periodAppointments.filter(a => a.status !== 'cancelado').length,
+      inactiveStyle: 'border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5',
+      activeStyle: 'bg-[#7C3AED] border-[#7C3AED] text-white',
+      badgeInactive: 'bg-[#7C3AED]/10 text-[#7C3AED]'
+    },
+    { id: 'confirmados', label: 'Confirmados', 
+      match: (a: AppointmentWithRelations) => a.status === 'confirmado', 
+      count: confirmadosPeriodo,
+      inactiveStyle: 'border-[#22C55E] text-[#22C55E] hover:bg-[#22C55E]/5',
+      activeStyle: 'bg-[#22C55E] border-[#22C55E] text-white',
+      badgeInactive: 'bg-[#22C55E]/10 text-[#22C55E]'
+    },
+    { id: 'pendentes', label: 'Pendentes', 
+      match: (a: AppointmentWithRelations) => a.status === 'pendente', 
+      count: pendentesPeriodo,
+      inactiveStyle: 'border-[#F59E0B] text-[#F59E0B] hover:bg-[#F59E0B]/5',
+      activeStyle: 'bg-[#F59E0B] border-[#F59E0B] text-white',
+      badgeInactive: 'bg-[#F59E0B]/10 text-[#F59E0B]'
+    },
+    { id: 'concluidos', label: 'Concluídos', 
+      match: (a: AppointmentWithRelations) => a.status === 'concluido', 
+      count: concluidosPeriodo,
+      inactiveStyle: 'border-[#374151] text-[#374151] hover:bg-[#374151]/5',
+      activeStyle: 'bg-[#374151] border-[#374151] text-white',
+      badgeInactive: 'bg-[#374151]/10 text-[#374151]'
+    },
+    { id: 'cancelados', label: 'Cancelados', 
+      match: (a: AppointmentWithRelations) => a.status === 'cancelado', 
+      count: canceladosPeriodo,
+      inactiveStyle: 'border-[#EF4444] text-[#EF4444] hover:bg-[#EF4444]/5',
+      activeStyle: 'bg-[#EF4444] border-[#EF4444] text-white',
+      badgeInactive: 'bg-[#EF4444]/10 text-[#EF4444]'
+    },
+    { id: 'previsto', label: 'Previsto', 
+      match: (a: AppointmentWithRelations) => ['confirmado', 'pendente'].includes(a.status), 
+      count: atendimentosFilter,
+      inactiveStyle: 'border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED]/5',
+      activeStyle: 'bg-[#7C3AED] border-[#7C3AED] text-white',
+      badgeInactive: 'bg-[#7C3AED]/10 text-[#7C3AED]'
+    },
+    { id: 'realizado', label: 'Realizado', 
+      match: (a: AppointmentWithRelations) => a.status === 'concluido', 
+      count: concluidosPeriodo,
+      inactiveStyle: 'border-[#22C55E] text-[#22C55E] hover:bg-[#22C55E]/5',
+      activeStyle: 'bg-[#22C55E] border-[#22C55E] text-white',
+      badgeInactive: 'bg-[#22C55E]/10 text-[#22C55E]'
+    },
+  ], [periodAppointments, confirmadosPeriodo, pendentesPeriodo, concluidosPeriodo, canceladosPeriodo, atendimentosFilter]);
+
+  // Search & Status local filters
   const filteredAppointmentsList = useMemo(() => {
-    let list = periodAppointments.filter(a => a.status !== "cancelado"); 
-    if (!search.trim()) return periodAppointments; 
-    return periodAppointments.filter(a => 
-      a.clients?.nome.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [search, periodAppointments]);
+    let list = periodAppointments;
+    
+    const activeChip = chipsConfig.find(c => c.id === statusFilter);
+    if (activeChip) list = list.filter(activeChip.match);
+    else list = list.filter(a => a.status !== "cancelado"); // Default
+    
+    if (search.trim()) {
+      return list.filter(a => a.clients?.nome.toLowerCase().includes(search.toLowerCase()));
+    }
+    return list;
+  }, [search, periodAppointments, statusFilter, chipsConfig]);
 
   const showToast = (msg: string) => setToastMsg(msg);
 
@@ -500,7 +573,7 @@ export default function DashboardPage() {
           {filter === 'hoje' ? 'Agenda do Dia' : filter.startsWith('prox') ? 'Próximos Agendamentos' : 'Agendamentos do Período'}
         </h3>
         
-        <Card className="p-4 mb-4 flex flex-col sm:flex-row gap-4">
+        <Card className="p-4 mb-6 flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
@@ -513,26 +586,54 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {isLoading ? (
-           <Card className="p-6 space-y-4">
-              {[1,2,3].map(i => (
-                <div key={i} className="flex gap-4 animate-pulse">
-                  <div className="w-12 h-6 bg-slate-200 rounded"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-                    <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+        {/* Status Filter Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {chipsConfig.map(chip => {
+            const isActive = statusFilter === chip.id;
+            return (
+              <button
+                key={chip.id}
+                onClick={() => handleChipClick(chip.id)}
+                className={`flex items-center gap-2 whitespace-nowrap px-4 py-[6px] border rounded-[20px] text-[13px] font-medium transition-colors duration-150 ${isActive ? chip.activeStyle : `bg-white ${chip.inactiveStyle}`}`}
+              >
+                <span>{chip.label}</span>
+                <span className={`px-[6px] py-[2px] rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20' : chip.badgeInactive}`}>
+                  {chip.count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className={`transition-opacity duration-150 ${isListViewAnimating ? 'opacity-0' : 'opacity-100'}`}>
+          {isLoading ? (
+             <Card className="p-6 space-y-4">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex gap-4 animate-pulse">
+                    <div className="w-12 h-6 bg-slate-200 rounded"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                      <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                    </div>
                   </div>
+                ))}
+             </Card>
+          ) : (
+            <Card className="divide-y divide-slate-100/80 overflow-hidden min-h-[200px]">
+              {filteredAppointmentsList.length === 0 ? (
+                <div className="p-12 flex flex-col items-center justify-center text-center bg-slate-50/30">
+                  <CalendarDays className="w-12 h-12 text-slate-300 mb-4" />
+                  <p className="text-slate-500 font-medium mb-5">
+                    Nenhum agendamento {chipsConfig.find(c => c.id === statusFilter)?.label.toLowerCase()} no período.
+                  </p>
+                  {statusFilter !== 'todos' && (
+                    <button onClick={() => handleChipClick('todos')} className="px-5 py-2 bg-white border border-slate-200 shadow-sm hover:border-slate-300 text-slate-700 rounded-[10px] text-sm font-semibold transition-colors">
+                      Ver todos
+                    </button>
+                  )}
                 </div>
-              ))}
-           </Card>
-        ) : (
-          <Card className="divide-y divide-slate-100/80 overflow-hidden">
-            {filteredAppointmentsList.length === 0 ? (
-              <div className="p-8 text-center text-slate-500">
-                Nenhum agendamento encontrado para este período.
-              </div>
-            ) : (
-              filteredAppointmentsList.map((app) => {
+              ) : (
+                filteredAppointmentsList.map((app) => {
                 const isCanceled = app.status === "cancelado";
                 const displayDate = filter === 'hoje' ? '' : `${formatDateList(app.data)} • `;
                 const displayTimeStr = `${displayDate}${formatHora(app.hora_inicio)}`;
@@ -597,8 +698,9 @@ export default function DashboardPage() {
                 );
               })
             )}
-          </Card>
-        )}
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Analytics Section */}
