@@ -36,6 +36,7 @@ export default function DashboardLayout({
 
   // Mobile Sidebar
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   const fetchPending = useCallback(async (sid: string) => {
     try {
@@ -125,8 +126,10 @@ export default function DashboardLayout({
       
       {/* DESKTOP SIDEBAR */}
       <aside 
-        style={{ transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}
-        className="hidden md:flex flex-col h-screen fixed left-0 top-0 z-50 shadow-none bg-brand text-white w-[64px] hover:w-[240px] group hover:shadow-[4px_0_20px_rgba(0,0,0,0.12)]">
+        style={{ width: sidebarExpanded ? '240px' : '64px', transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}
+        onMouseEnter={() => setSidebarExpanded(true)}
+        onMouseLeave={() => setSidebarExpanded(false)}
+        className="hidden md:flex flex-col h-screen fixed left-0 top-0 z-50 shadow-none bg-brand text-white group hover:shadow-[4px_0_20px_rgba(0,0,0,0.12)]">
         <div className="flex flex-col h-full overflow-hidden w-full">
           {/* TOPO */}
           <div className="pt-4 pb-4 flex items-center justify-center shrink-0 border-b border-white/5 w-full">
@@ -289,7 +292,10 @@ export default function DashboardLayout({
       )}
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 bg-[#F3F4F6] min-h-screen relative w-full overflow-hidden md:ml-[64px]">
+      <main 
+        className={`flex-1 bg-[#F3F4F6] min-h-screen relative overflow-hidden ${sidebarExpanded ? 'md:ml-[240px] md:w-[calc(100vw-240px)]' : 'md:ml-[64px] md:w-[calc(100vw-64px)] w-full'}`}
+        style={{ transition: 'margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}
+      >
         {/* MOBILE TOP BAR */}
         <div className="md:hidden flex items-center h-16 px-4 bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
           <button onClick={() => setIsMobileOpen(true)} className="p-2 -ml-2 mr-2 hover:bg-slate-100 rounded-lg transition-colors">
