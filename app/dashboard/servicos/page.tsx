@@ -20,12 +20,16 @@ export default function ServicosPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [salonId, setSalonId] = useState<string | null>(null);
   
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [targetService, setTargetService] = useState<Service | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
   
   // Form Logic
-  const [formData, setFormData] = useState({ nome: "", duracao_minutos: 45, preco: 0.00 });
+  const [nome, setNome] = useState("");
+  const [duracao, setDuracao] = useState<number | string>("");
+  const [preco, setPreco] = useState<number | string>("");
+  const [loading, setLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
 
   useEffect(() => {
@@ -51,61 +55,83 @@ export default function ServicosPage() {
 
   const openFormModal = (service?: Service) => {
     if (service) {
-      setTargetService(service);
-      setFormData({ nome: service.nome, duracao_minutos: service.duracao_minutos, preco: service.preco });
+      setEditingService(service);
+      setNome(service.nome);
+      setDuracao(service.duracao_minutos);
+      setPreco(service.preco);
     } else {
-      setTargetService(null);
-      setFormData({ nome: "", duracao_minutos: 60, preco: 0 });
+      setEditingService(null);
+      setNome("");
+      setDuracao("");
+      setPreco("");
     }
-    setIsModalOpen(true);
+    setModalOpen(true);
   };
 
   const closeModals = () => {
-    setIsModalOpen(false);
+    setModalOpen(false);
     setIsDeleteOpen(false);
     setTargetService(null);
+    setEditingService(null);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.nome || formData.duracao_minutos <= 0 || !salonId) return;
-
+  const handleSaveService = async () => {
+    if (!nome || !duracao || !preco) {
+      alert('Preencha todos os campos')
+      return
+    }
+    setLoading(true)
     try {
-      if (targetService) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: salon } = await supabase
+        .from('salons')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      if (!salon) return
+
+      if (editingService) {
         const { error } = await supabase
           .from('services')
-          .update({ 
-            nome: formData.nome, 
-            duracao_minutos: formData.duracao_minutos, 
-            preco: formData.preco 
+          .update({
+            nome: nome,
+            duracao_minutos: Number(duracao),
+            preco: Number(preco)
           })
-          .eq('id', targetService.id);
-
+          .eq('id', editingService.id)
         if (!error) {
-          setServices(prev => prev.map(s => 
-            s.id === targetService.id ? { ...s, ...formData } : s
-          ));
-          setToastMsg("Serviço atualizado com sucesso.");
+          setServices(prev => prev.map(s =>
+            s.id === editingService.id
+              ? { ...s, nome, duracao_minutos: Number(duracao), preco: Number(preco) }
+              : s
+          ))
         }
       } else {
         const { data, error } = await supabase
           .from('services')
-          .insert([{ 
-            salon_id: salonId, 
-            nome: formData.nome, 
-            duracao_minutos: formData.duracao_minutos, 
-            preco: formData.preco 
+          .insert([{
+            salon_id: salon.id,
+            nome: nome,
+            duracao_minutos: Number(duracao),
+            preco: Number(preco)
           }])
           .select()
-          .single();
-
+          .single()
         if (!error && data) {
-          setServices(prev => [...prev, data]);
-          setToastMsg("Novo serviço criado.");
+          setServices(prev => [...prev, data])
         }
       }
+      setNome('')
+      setDuracao('')
+      setPreco('')
+      setEditingService(null)
+      setModalOpen(false)
+    } catch (err) {
+      console.error('Erro ao salvar serviço:', err)
     } finally {
-      closeModals();
+      setLoading(false)
     }
   };
 
@@ -187,15 +213,15 @@ export default function ServicosPage() {
 
       {/* Modal NOVO/EDITAR */}
       <Modal 
-        isOpen={isModalOpen} 
+        isOpen={modalOpen} 
         onClose={closeModals} 
-        title={targetService ? "Editar Serviço" : "Novo Serviço"}
+        title={editingService ? "Editar Serviço" : "Novo Serviço"}
       >
-        <form onSubmit={handleSave} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <Input 
             label="Nome do Serviço" 
-            value={formData.nome}
-            onChange={(e) => setFormData({...formData, nome: e.target.value})}
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
             required 
             placeholder="Ex: Corte Degrade"
           />
@@ -205,8 +231,8 @@ export default function ServicosPage() {
               type="number"
               min="5"
               step="5"
-              value={formData.duracao_minutos}
-              onChange={(e) => setFormData({...formData, duracao_minutos: parseInt(e.target.value) || 0})}
+              value={duracao}
+              onChange={(e) => setDuracao(e.target.value)}
               required 
             />
             <Input 
@@ -214,8 +240,8 @@ export default function ServicosPage() {
               type="number"
               step="0.01"
               min="0"
-              value={formData.preco}
-              onChange={(e) => setFormData({...formData, preco: parseFloat(e.target.value) || 0})}
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
               required 
             />
           </div>
@@ -225,9 +251,16 @@ export default function ServicosPage() {
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="ghost" onClick={closeModals}>Cancelar</Button>
-            <Button type="submit" variant="primary">Salvar Serviço</Button>
+            <Button 
+              type="button" 
+              variant="primary" 
+              onClick={handleSaveService}
+              disabled={loading}
+            >
+              {loading ? "Salvando..." : "Salvar Serviço"}
+            </Button>
           </div>
-        </form>
+        </div>
       </Modal>
 
       {/* Modal de Confirmação EXCLUSÃO */}
