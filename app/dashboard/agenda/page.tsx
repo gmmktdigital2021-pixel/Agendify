@@ -276,7 +276,7 @@ export default function AgendaPage() {
       </div>
 
       {/* Calendar Grid Container */}
-      <div className="h-[calc(100vh-120px)] bg-white border border-slate-200 rounded-2xl shadow-sm overflow-y-auto flex flex-col custom-scrollbar relative">
+      <div className="h-[calc(100vh-120px)] bg-white border border-slate-200 rounded-2xl shadow-sm overflow-auto flex flex-col relative">
         
         {/* Days Header */}
         <div className="sticky top-0 z-30 flex border-b border-slate-200 bg-white shrink-0">

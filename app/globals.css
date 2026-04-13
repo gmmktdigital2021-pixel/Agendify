@@ -25,3 +25,41 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Scrollbar minimalista global */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #D1D5DB transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Esconder scrollbar mas manter funcionalidade em elementos específicos */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

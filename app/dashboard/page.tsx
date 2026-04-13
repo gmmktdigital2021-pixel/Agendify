@@ -655,7 +655,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Status Filter Chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
           {chipsConfig.map(chip => {
             const isActive = statusFilter === chip.id;
             return (

@@ -143,7 +143,7 @@ export default function DashboardLayout({
           </div>
 
           {/* NAVEGAÇÃO DESKTOP */}
-          <nav className="flex-1 py-4 space-y-2 overflow-x-hidden overflow-y-auto w-full custom-scrollbar">
+          <nav className="flex-1 py-4 space-y-2 overflow-x-hidden overflow-y-auto w-full hide-scrollbar">
             {navItems.map((item) => {
               const isActive = item.href === "/dashboard" 
                 ? pathname === "/dashboard" 
