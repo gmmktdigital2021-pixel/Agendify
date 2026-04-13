@@ -16,10 +16,16 @@ import {
   ChevronDown,
   TrendingUp,
   PieChart as PieChartIcon,
-  BarChart3
+  BarChart3,
+  Activity,
+  BarChart2
 } from "lucide-react";
 import { supabase, db } from "@/lib/supabase";
-import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid } from "recharts";
+import {
+  AreaChart, Area, LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from 'recharts';
 
 type AppointmentStatus = "confirmado" | "pendente" | "cancelado" | "concluido";
 
@@ -41,8 +47,23 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [salonId, setSalonId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [chartType, setChartType] = useState<'area' | 'line' | 'bar'>('area');
+  const [isChartAnimating, setIsChartAnimating] = useState(false);
 
-  useEffect(() => { setIsMounted(true); }, []);
+  useEffect(() => { 
+    setIsMounted(true); 
+    const saved = localStorage.getItem('agendify-chart-type') as 'area' | 'line' | 'bar' | null;
+    if (saved) setChartType(saved);
+  }, []);
+
+  const handleSetChartType = (type: 'area' | 'line' | 'bar') => {
+    setIsChartAnimating(true);
+    setTimeout(() => {
+      setChartType(type);
+      setIsChartAnimating(false);
+      localStorage.setItem('agendify-chart-type', type);
+    }, 150);
+  };
 
   // Filtro
   const [filter, setFilter] = useState<FilterOption>('prox7d');
