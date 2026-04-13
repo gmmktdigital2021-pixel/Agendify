@@ -55,7 +55,20 @@ export default function DashboardLayout({
       setUserEmail(session.user.email || "usuário");
       setUserInitials(session.user.email?.substring(0,2).toUpperCase() || "US");
 
-      const { data: salon } = await supabase.from('salons').select('*').eq('user_id', session.user.id).single();
+      let { data: salon } = await supabase.from('salons').select('*').eq('user_id', session.user.id).single();
+      
+      if (!salon) {
+        const { data: newSalon } = await supabase.from('salons').insert([{
+          user_id: session.user.id,
+          nome: 'Meu Salão',
+          horario_inicio: '08:00',
+          horario_fim: '19:00',
+          dias_ativos: ['seg','ter','qua','qui','sex'],
+          mensagem_padrao: 'Oi {nome}, seu horário está confirmado para {dia} às {hora}'
+        }]).select().single();
+        salon = newSalon;
+      }
+
       if (salon) {
         setSalonName(salon.nome);
         setSalonId(salon.id);
