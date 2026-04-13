@@ -28,7 +28,7 @@ interface AppointmentWithRelations {
   services: { nome: string; preco: number; duracao_minutos: number } | null;
 }
 
-type FilterOption = 'hoje' | 'ontem' | '7d' | '15d' | '30d' | '90d' | 'custom';
+type FilterOption = 'hoje' | 'ontem' | 'prox7d' | 'prox15d' | 'prox30d' | '7d' | '15d' | '30d' | '90d' | 'custom';
 
 export default function DashboardPage() {
   const [appointmentsQuery, setAppointmentsQuery] = useState<AppointmentWithRelations[]>([]);
@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const [salonId, setSalonId] = useState<string | null>(null);
 
   // Filtro
-  const [filter, setFilter] = useState<FilterOption>('hoje');
+  const [filter, setFilter] = useState<FilterOption>('prox7d');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
@@ -60,21 +60,30 @@ export default function DashboardPage() {
     const formatSQL = (d: Date) => d.toISOString().split('T')[0];
 
     if (filter === 'ontem') {
-      start.setDate(end.getDate() - 1);
+      start.setDate(start.getDate() - 1);
       end.setDate(end.getDate() - 1);
       startSql = formatSQL(start);
       endSql = formatSQL(end);
+    } else if (filter === 'prox7d') {
+      end.setDate(end.getDate() + 7);
+      endSql = formatSQL(end);
+    } else if (filter === 'prox15d') {
+      end.setDate(end.getDate() + 15);
+      endSql = formatSQL(end);
+    } else if (filter === 'prox30d') {
+      end.setDate(end.getDate() + 30);
+      endSql = formatSQL(end);
     } else if (filter === '7d') {
-      start.setDate(end.getDate() - 6);
+      start.setDate(start.getDate() - 6);
       startSql = formatSQL(start);
     } else if (filter === '15d') {
-      start.setDate(end.getDate() - 14);
+      start.setDate(start.getDate() - 14);
       startSql = formatSQL(start);
     } else if (filter === '30d') {
-      start.setDate(end.getDate() - 29);
+      start.setDate(start.getDate() - 29);
       startSql = formatSQL(start);
     } else if (filter === '90d') {
-      start.setDate(end.getDate() - 89);
+      start.setDate(start.getDate() - 89);
       startSql = formatSQL(start);
     } else if (filter === 'custom' && appliedCustomStart && appliedCustomEnd) {
       startSql = appliedCustomStart;
@@ -162,7 +171,7 @@ export default function DashboardPage() {
     .filter(a => a.status === "concluido")
     .reduce((acc, curr) => acc + (curr.services?.preco || 0), 0);
 
-  const atendimentosFilter = periodAppointments.filter(a => a.status === "confirmado" || a.status === "concluido").length;
+  const atendimentosFilter = periodAppointments.filter(a => a.status === "confirmado" || a.status === "pendente").length;
   
   const confirmadosPeriodo = periodAppointments.filter(a => a.status === "confirmado").length;
   const concluidosPeriodo = periodAppointments.filter(a => a.status === "concluido").length;
@@ -208,7 +217,15 @@ export default function DashboardPage() {
 
   const getFilterLabel = () => {
     const map: any = {
-      'hoje': 'Hoje', 'ontem': 'Ontem', '7d': 'Últimos 7 dias', '15d': 'Últimos 15 dias', '30d': 'Últimos 30 dias', '90d': 'Últimos 90 dias'
+      'hoje': 'Hoje',
+      'prox7d': 'Próximos 7 dias',
+      'prox15d': 'Próximos 15 dias',
+      'prox30d': 'Próximos 30 dias',
+      'ontem': 'Ontem',
+      '7d': 'Últimos 7 dias',
+      '15d': 'Últimos 15 dias',
+      '30d': 'Últimos 30 dias',
+      '90d': 'Últimos 90 dias'
     };
     if (filter === 'custom') return `${formatDateList(startSql)} a ${formatDateList(endSql)}`;
     return map[filter];
@@ -251,7 +268,17 @@ export default function DashboardPage() {
           
           {isDropdownOpen && (
             <div className="absolute right-0 top-full mt-2 w-[280px] bg-white border border-slate-200 shadow-xl rounded-[10px] p-2 flex flex-col gap-1">
-              {[ {k:'hoje', l:'Hoje'}, {k:'ontem', l:'Ontem'}, {k:'7d', l:'Últimos 7 dias'}, {k:'15d', l:'Últimos 15 dias'}, {k:'30d', l:'Últimos 30 dias'}, {k:'90d', l:'Últimos 90 dias'}].map(opt => (
+              {[ 
+                {k:'hoje', l:'Hoje'}, 
+                {k:'prox7d', l:'Próximos 7 dias'}, 
+                {k:'prox15d', l:'Próximos 15 dias'}, 
+                {k:'prox30d', l:'Próximos 30 dias'}, 
+                {k:'ontem', l:'Ontem'}, 
+                {k:'7d', l:'Últimos 7 dias'}, 
+                {k:'15d', l:'Últimos 15 dias'}, 
+                {k:'30d', l:'Últimos 30 dias'}, 
+                {k:'90d', l:'Últimos 90 dias'}
+              ].map(opt => (
                 <button 
                   key={opt.k}
                   onClick={() => handleSelectFilter(opt.k as FilterOption)}
@@ -341,15 +368,15 @@ export default function DashboardPage() {
       <div className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm text-center">
          <span>{getFilterLabel()}:</span> 
          <span className="text-green-600 font-bold">{confirmadosPeriodo} confirmados</span> • 
+         <span className="text-amber-500 font-bold">{pendentesPeriodo} pendentes</span> • 
          <span className="text-slate-600 font-bold">{concluidosPeriodo} concluídos</span> • 
-         <span className="text-red-400 font-bold">{canceladosPeriodo} cancelados</span> • 
-         <span className="text-amber-500 font-bold">{pendentesPeriodo} pendentes</span>
+         <span className="text-red-400 font-bold">{canceladosPeriodo} cancelados</span>
       </div>
 
       {/* Agenda Section */}
       <div>
         <h3 className="text-lg font-bold text-slate-800 mb-4">
-          {filter === 'hoje' ? 'Agenda do Dia' : 'Agendamentos do Período'}
+          {filter === 'hoje' ? 'Agenda do Dia' : filter.startsWith('prox') ? 'Próximos Agendamentos' : 'Agendamentos do Período'}
         </h3>
         
         <Card className="p-4 mb-4 flex flex-col sm:flex-row gap-4">
