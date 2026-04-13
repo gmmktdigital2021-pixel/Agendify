@@ -26,6 +26,7 @@ export default function DashboardLayout({
   const [salonName, setSalonName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");
+  const [salonFotoPerfil, setSalonFotoPerfil] = useState("");
   
   // Realtime Pendentes
   const [pendingCount, setPendingCount] = useState(0);
@@ -72,6 +73,7 @@ export default function DashboardLayout({
       if (salon) {
         setSalonName(salon.nome);
         setSalonId(salon.id);
+        if (salon.foto_perfil) setSalonFotoPerfil(salon.foto_perfil);
         fetchPending(salon.id);
       }
     }
@@ -166,9 +168,13 @@ export default function DashboardLayout({
           <div className="p-4 mt-auto">
             <div className="bg-white/10 rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0 uppercase">
-                  {userInitials}
-                </div>
+                {salonFotoPerfil ? (
+                  <img src={salonFotoPerfil} alt="Perfil" className="w-10 h-10 rounded-full object-cover shrink-0 bg-white/20 border border-white/10" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0 uppercase">
+                    {userInitials}
+                  </div>
+                )}
                 <div className="truncate">
                   <p className="text-sm font-medium text-white/70 truncate max-w-[100px]">
                     {userEmail}
