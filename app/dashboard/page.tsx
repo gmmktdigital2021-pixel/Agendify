@@ -222,14 +222,35 @@ export default function DashboardPage() {
     const grouped = validos.reduce((acc, curr) => {
       const parts = curr.data.split('-');
       const dateLabel = parts.length === 3 ? `${parts[2]}/${parts[1]}` : curr.data;
-      if (!acc[dateLabel]) acc[dateLabel] = { date: dateLabel, total: 0 };
+      if (!acc[dateLabel]) acc[dateLabel] = { data: dateLabel, valor: 0 };
       
       const val = curr.services?.preco || 0;
-      acc[dateLabel].total += val;
+      acc[dateLabel].valor += val;
       
       return acc;
-    }, {} as Record<string, { date: string; total: number }>);
-    return Object.values(grouped);
+    }, {} as Record<string, { data: string; valor: number }>);
+    
+    let result = Object.values(grouped).sort((a, b) => {
+      const [diaA, mesA] = a.data.split('/');
+      const [diaB, mesB] = b.data.split('/');
+      if (mesA !== mesB) return Number(mesA) - Number(mesB);
+      return Number(diaA) - Number(diaB);
+    });
+
+    if (result.length === 1) {
+      const parts = result[0].data.split('/');
+      if (parts.length === 2) {
+        let diaNum = Number(parts[0]) - 1;
+        let mesNum = Number(parts[1]);
+        if (diaNum <= 0) {
+           diaNum = 28;
+           mesNum -= 1;
+        }
+        const gData = `${String(diaNum).padStart(2, '0')}/${String(mesNum).padStart(2, '0')}`;
+        result.unshift({ data: gData, valor: 0 });
+      }
+    }
+    return result;
   }, [periodAppointments]);
 
   const dadosGraficoStatus = useMemo(() => {
@@ -749,31 +770,31 @@ export default function DashboardPage() {
                   <span className="text-sm font-medium">Nenhum dado no período selecionado</span>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={250}>
                   {chartType === 'area' ? (
-                    <AreaChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3}/>
                           <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
+                      <XAxis dataKey="data" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} />
                       <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Area type="monotone" dataKey="total" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotal)" activeDot={{ r: 5, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={true} />
+                      <Area type="monotone" dataKey="valor" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#areaGradient)" dot={{ fill: '#7C3AED', r: 4 }} activeDot={{ r: 6 }} isAnimationActive={true} />
                     </AreaChart>
                   ) : chartType === 'line' ? (
-                    <LineChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <LineChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
+                      <XAxis dataKey="data" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} />
                       <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Line type="monotone" dataKey="total" stroke="#7C3AED" strokeWidth={2.5} dot={{ r: 4, fill: '#7C3AED', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={true} />
+                      <Line type="monotone" dataKey="valor" stroke="#7C3AED" strokeWidth={2.5} dot={{ fill: '#7C3AED', r: 4, strokeWidth: 2, stroke: 'white' }} activeDot={{ r: 6 }} isAnimationActive={true} />
                     </LineChart>
                   ) : (
-                    <BarChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
                          <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#7C3AED" />
@@ -781,10 +802,10 @@ export default function DashboardPage() {
                          </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
+                      <XAxis dataKey="data" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} />
                       <RechartsTooltip content={<CustomTooltipArea />} cursor={{ fill: '#f3f4f6' }} />
-                      <Bar dataKey="total" fill="url(#colorBar)" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={true} activeBar={{ fill: '#6D28D9' }} />
+                      <Bar dataKey="valor" fill="url(#colorBar)" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={true} activeBar={{ fill: '#6D28D9' }} />
                     </BarChart>
                   )}
                 </ResponsiveContainer>
