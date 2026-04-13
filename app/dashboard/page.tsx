@@ -693,13 +693,33 @@ export default function DashboardPage() {
           
           {/* Gráfico 1 - Faturamento por Dia */}
           <div className="md:col-span-2 bg-white rounded-[16px] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04)]">
-            <div className="flex items-center gap-2 mb-1">
-               <TrendingUp className="w-5 h-5 text-[#7C3AED]" />
-               <h4 className="text-[15px] font-bold text-[#111827]">Faturamento por Dia</h4>
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                   {chartType === 'area' && <TrendingUp className="w-5 h-5 text-[#7C3AED]" />}
+                   {chartType === 'line' && <Activity className="w-5 h-5 text-[#7C3AED]" />}
+                   {chartType === 'bar' && <BarChart2 className="w-5 h-5 text-[#7C3AED]" />}
+                   <h4 className="text-[15px] font-bold text-[#111827]">Faturamento por Dia</h4>
+                </div>
+                <p className="text-[12px] text-[#9CA3AF] ml-7">Baseado no período selecionado</p>
+              </div>
+              <div className="flex bg-[#F3F4F6] p-1 rounded-[10px] gap-0.5">
+                <button onClick={() => handleSetChartType('area')} title="Área"
+                  className={`p-1.5 rounded-[8px] transition-all duration-150 flex items-center justify-center cursor-pointer ${chartType === 'area' ? 'bg-white shadow-sm scale-95' : 'text-[#9CA3AF] hover:text-slate-600'}`}>
+                  <TrendingUp className={`w-4 h-4 ${chartType === 'area' ? 'text-[#7C3AED]' : ''}`} />
+                </button>
+                <button onClick={() => handleSetChartType('line')} title="Linha"
+                  className={`p-1.5 rounded-[8px] transition-all duration-150 flex items-center justify-center cursor-pointer ${chartType === 'line' ? 'bg-white shadow-sm scale-95' : 'text-[#9CA3AF] hover:text-slate-600'}`}>
+                  <Activity className={`w-4 h-4 ${chartType === 'line' ? 'text-[#7C3AED]' : ''}`} />
+                </button>
+                <button onClick={() => handleSetChartType('bar')} title="Barras"
+                  className={`p-1.5 rounded-[8px] transition-all duration-150 flex items-center justify-center cursor-pointer ${chartType === 'bar' ? 'bg-white shadow-sm scale-95' : 'text-[#9CA3AF] hover:text-slate-600'}`}>
+                  <BarChart2 className={`w-4 h-4 ${chartType === 'bar' ? 'text-[#7C3AED]' : ''}`} />
+                </button>
+              </div>
             </div>
-            <p className="text-[12px] text-[#9CA3AF] mb-6 ml-7">Baseado no período selecionado</p>
             
-            <div className="h-[250px] w-full">
+            <div className={`h-[250px] w-full transition-opacity duration-150 ${isChartAnimating ? 'opacity-0' : 'opacity-100'}`}>
               {isLoading ? (
                 <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg"></div>
               ) : dadosGraficoFaturamento.length === 0 ? (
@@ -709,19 +729,43 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
-                    <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                    <Area type="monotone" dataKey="total" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotal)" activeDot={{ r: 5, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={true} />
-                  </AreaChart>
+                  {chartType === 'area' ? (
+                    <AreaChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
+                      <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Area type="monotone" dataKey="total" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTotal)" activeDot={{ r: 5, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={true} />
+                    </AreaChart>
+                  ) : chartType === 'line' ? (
+                    <LineChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
+                      <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Line type="monotone" dataKey="total" stroke="#7C3AED" strokeWidth={2.5} dot={{ r: 4, fill: '#7C3AED', strokeWidth: 0 }} activeDot={{ r: 5, fill: '#7C3AED', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={true} />
+                    </LineChart>
+                  ) : (
+                    <BarChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                         <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#7C3AED" />
+                            <stop offset="100%" stopColor="#A78BFA" />
+                         </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} dx={-10} />
+                      <RechartsTooltip content={<CustomTooltipArea />} cursor={{ fill: '#f3f4f6' }} />
+                      <Bar dataKey="total" fill="url(#colorBar)" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={true} activeBar={{ fill: '#6D28D9' }} />
+                    </BarChart>
+                  )}
                 </ResponsiveContainer>
               )}
             </div>
