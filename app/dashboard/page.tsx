@@ -29,7 +29,76 @@ import {
 
 type AppointmentStatus = "confirmado" | "pendente" | "cancelado" | "concluido";
 
-interface AppointmentWithRelations {
+type AppointmentWithService = {
+  id: string;
+  status: AppointmentStatus;
+  data: string;
+  hora_inicio: string;
+  services: { nome: string; preco: number; duracao_minutos: number } | null;
+  clients?: { nome: string; telefone: string } | null;
+}
+
+// Usar alias para manter compatibilidade com restos do código
+type AppointmentWithRelations = AppointmentWithService;
+
+type ChartDataPoint = { label: string; valor: number; previsto: number };
+
+function processChartData(
+  appointments: AppointmentWithRelations[],
+  startDate: Date,
+  endDate: Date
+): ChartDataPoint[] {
+  const diffDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 1) {
+    const hours: Record<string, ChartDataPoint> = {};
+    for (let h = 8; h <= 19; h++) {
+      const label = `${String(h).padStart(2, '0')}:00`;
+      hours[label] = { label, valor: 0, previsto: 0 };
+    }
+    appointments.forEach(a => {
+      const hour = a.hora_inicio?.substring(0, 5) || '08:00';
+      const roundedHour = `${hour.substring(0, 2)}:00`;
+      if (hours[roundedHour]) {
+        if (a.status === 'concluido') hours[roundedHour].valor += Number(a.services?.preco || 0);
+        if (['confirmado', 'pendente'].includes(a.status)) hours[roundedHour].previsto += Number(a.services?.preco || 0);
+      }
+    });
+    return Object.values(hours);
+  }
+
+  if (diffDays <= 30) {
+    const days: Record<string, ChartDataPoint> = {};
+    for (let i = 0; i <= diffDays; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      const key = d.toISOString().split('T')[0];
+      const label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+      days[key] = { label, valor: 0, previsto: 0 };
+    }
+    appointments.forEach(a => {
+      const key = a.data;
+      if (days[key]) {
+        if (a.status === 'concluido') days[key].valor += Number(a.services?.preco || 0);
+        if (['confirmado', 'pendente'].includes(a.status)) days[key].previsto += Number(a.services?.preco || 0);
+      }
+    });
+    return Object.values(days);
+  }
+
+  const weeks: Record<string, ChartDataPoint> = {};
+  appointments.forEach(a => {
+    const d = new Date(a.data + 'T00:00:00');
+    const weekStart = new Date(d);
+    weekStart.setDate(d.getDate() - d.getDay());
+    const key = weekStart.toISOString().split('T')[0];
+    const label = `${String(weekStart.getDate()).padStart(2, '0')}/${String(weekStart.getMonth() + 1).padStart(2, '0')}`;
+    if (!weeks[key]) weeks[key] = { label, valor: 0, previsto: 0 };
+    if (a.status === 'concluido') weeks[key].valor += Number(a.services?.preco || 0);
+    if (['confirmado', 'pendente'].includes(a.status)) weeks[key].previsto += Number(a.services?.preco || 0);
+  });
+  return Object.values(weeks).sort((a, b) => a.label.localeCompare(b.label));
+}
   id: string;
   data: string;
   hora_inicio: string;
@@ -217,41 +286,25 @@ export default function DashboardPage() {
   const livresCanceladosHoje = todayAppointments.filter(a => a.status === "cancelado").length;
 
   // --- DADOS PARA GRÁFICOS ---
-  const dadosGraficoFaturamento = useMemo(() => {
-    const validos = periodAppointments.filter(a => a.status === "concluido" || a.status === "confirmado" || a.status === "pendente");
-    const grouped = validos.reduce((acc, curr) => {
-      const parts = curr.data.split('-');
-      const dateLabel = parts.length === 3 ? `${parts[2]}/${parts[1]}` : curr.data;
-      if (!acc[dateLabel]) acc[dateLabel] = { data: dateLabel, valor: 0 };
-      
-      const val = curr.services?.preco || 0;
-      acc[dateLabel].valor += val;
-      
-      return acc;
-    }, {} as Record<string, { data: string; valor: number }>);
-    
-    let result = Object.values(grouped).sort((a, b) => {
-      const [diaA, mesA] = a.data.split('/');
-      const [diaB, mesB] = b.data.split('/');
-      if (mesA !== mesB) return Number(mesA) - Number(mesB);
-      return Number(diaA) - Number(diaB);
-    });
+  const diffDays = useMemo(() => {
+    return Math.ceil((new Date(`${endSql}T00:00:00`).getTime() - new Date(`${startSql}T00:00:00`).getTime()) / (1000 * 60 * 60 * 24));
+  }, [startSql, endSql]);
 
-    if (result.length === 1) {
-      const parts = result[0].data.split('/');
-      if (parts.length === 2) {
-        let diaNum = Number(parts[0]) - 1;
-        let mesNum = Number(parts[1]);
-        if (diaNum <= 0) {
-           diaNum = 28;
-           mesNum -= 1;
-        }
-        const gData = `${String(diaNum).padStart(2, '0')}/${String(mesNum).padStart(2, '0')}`;
-        result.unshift({ data: gData, valor: 0 });
-      }
-    }
-    return result;
-  }, [periodAppointments]);
+  const dadosGraficoFaturamento = useMemo(() => {
+    return processChartData(periodAppointments, new Date(`${startSql}T00:00:00`), new Date(`${endSql}T00:00:00`));
+  }, [periodAppointments, startSql, endSql]);
+
+  const chartSubtitle = diffDays <= 1
+    ? 'Por hora do dia'
+    : diffDays <= 30
+    ? 'Por dia'
+    : 'Por semana';
+
+  const chartTitle = diffDays <= 1 
+    ? 'Faturamento por Hora' 
+    : diffDays <= 30 
+    ? 'Faturamento por Dia' 
+    : 'Faturamento por Semana';
 
   const dadosGraficoStatus = useMemo(() => {
     const counts = { confirmado: 0, concluido: 0, cancelado: 0, pendente: 0 };
@@ -284,18 +337,18 @@ export default function DashboardPage() {
       .sort((a, b) => b.count - a.count);
   }, [periodAppointments]);
 
-  const CustomTooltipArea = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.08)] text-sm min-w-[140px] border border-slate-100">
-          <p className="font-semibold text-slate-500 mb-1">{label}</p>
-          <p className="font-bold text-[#7C3AED] text-base">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(payload[0].value)}
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 14px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 6 }}>{label}</p>
+        {payload.map((entry, i) => (
+          <p key={i} style={{ fontSize: 13, fontWeight: 600, color: entry.color, margin: '2px 0' }}>
+            {entry.name}: R$ {Number(entry.value).toFixed(2).replace('.', ',')}
           </p>
-        </div>
-      );
-    }
-    return null;
+        ))}
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -741,9 +794,9 @@ export default function DashboardPage() {
                    {chartType === 'area' && <TrendingUp className="w-5 h-5 text-[#7C3AED]" />}
                    {chartType === 'line' && <Activity className="w-5 h-5 text-[#7C3AED]" />}
                    {chartType === 'bar' && <BarChart2 className="w-5 h-5 text-[#7C3AED]" />}
-                   <h4 className="text-[15px] font-bold text-[#111827]">Faturamento por Dia</h4>
+                   <h4 className="text-[15px] font-bold text-[#111827]">{chartTitle}</h4>
                 </div>
-                <p className="text-[12px] text-[#9CA3AF] ml-7">Baseado no período selecionado</p>
+                <p className="text-[12px] text-[#9CA3AF] ml-7">{chartSubtitle}</p>
               </div>
               <div className="flex bg-[#F3F4F6] p-1 rounded-[10px] gap-0.5">
                 <button onClick={() => handleSetChartType('area')} title="Área"
@@ -764,48 +817,49 @@ export default function DashboardPage() {
             <div className={`h-[250px] w-full transition-opacity duration-150 ${isChartAnimating ? 'opacity-0' : 'opacity-100'}`}>
               {isLoading ? (
                 <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg"></div>
-              ) : dadosGraficoFaturamento.length === 0 ? (
+              ) : dadosGraficoFaturamento.every(d => d.valor === 0 && d.previsto === 0) ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                  <BarChart3 className="w-10 h-10 mb-3 opacity-50 text-slate-300" />
-                  <span className="text-sm font-medium">Nenhum dado no período selecionado</span>
+                  <TrendingUp className="w-10 h-10 mb-3 opacity-50 text-slate-300" />
+                  <span className="text-sm font-medium">Nenhum faturamento no período</span>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={250}>
                   {chartType === 'area' ? (
                     <AreaChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <defs>
-                        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3}/>
+                        <linearGradient id="areaGradientRealizado" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.25}/>
                           <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="areaGradientPrevisto" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22C55E" stopOpacity={0.25}/>
+                          <stop offset="95%" stopColor="#22C55E" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis dataKey="data" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} />
-                      <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Area type="monotone" dataKey="valor" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#areaGradient)" dot={{ fill: '#7C3AED', r: 4 }} activeDot={{ r: 6 }} isAnimationActive={true} />
+                      <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Area type="monotone" dataKey="valor" name="Realizado" stroke="#7C3AED" strokeWidth={2} fillOpacity={1} fill="url(#areaGradientRealizado)" activeDot={{ r: 6 }} isAnimationActive={true} />
+                      <Area type="monotone" dataKey="previsto" name="Previsto" stroke="#22C55E" strokeWidth={2} fillOpacity={1} fill="url(#areaGradientPrevisto)" activeDot={{ r: 6 }} isAnimationActive={true} />
                     </AreaChart>
                   ) : chartType === 'line' ? (
                     <LineChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis dataKey="data" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} />
-                      <RechartsTooltip content={<CustomTooltipArea />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Line type="monotone" dataKey="valor" stroke="#7C3AED" strokeWidth={2.5} dot={{ fill: '#7C3AED', r: 4, strokeWidth: 2, stroke: 'white' }} activeDot={{ r: 6 }} isAnimationActive={true} />
+                      <RechartsTooltip content={<CustomTooltip />} cursor={{ stroke: '#E5E7EB', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Line type="monotone" dataKey="valor" name="Realizado" stroke="#7C3AED" strokeWidth={2.5} dot={{ fill: '#7C3AED', r: 4 }} activeDot={{ r: 6 }} isAnimationActive={true} />
+                      <Line type="monotone" dataKey="previsto" name="Previsto" stroke="#22C55E" strokeWidth={2.5} dot={{ fill: '#22C55E', r: 4 }} activeDot={{ r: 6 }} isAnimationActive={true} />
                     </LineChart>
                   ) : (
                     <BarChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                      <defs>
-                         <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#7C3AED" />
-                            <stop offset="100%" stopColor="#A78BFA" />
-                         </linearGradient>
-                      </defs>
                       <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis dataKey="data" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
+                      <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9CA3AF' }} tickFormatter={(val: number) => `R$${val}`} />
-                      <RechartsTooltip content={<CustomTooltipArea />} cursor={{ fill: '#f3f4f6' }} />
-                      <Bar dataKey="valor" fill="url(#colorBar)" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={true} activeBar={{ fill: '#6D28D9' }} />
+                      <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: '#f3f4f6' }} />
+                      <Bar dataKey="valor" name="Realizado" fill="#7C3AED" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={true} />
+                      <Bar dataKey="previsto" name="Previsto" fill="#22C55E" radius={[6, 6, 0, 0]} maxBarSize={40} isAnimationActive={true} />
                     </BarChart>
                   )}
                 </ResponsiveContainer>
