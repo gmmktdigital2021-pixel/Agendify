@@ -168,7 +168,11 @@ export default function DashboardPage() {
   [appointmentsQuery, todaySQL]);
 
   // --- MÉTTRICAS ---
-  const faturamento = periodAppointments
+  const faturamentoPrevisto = periodAppointments
+    .filter(a => a.status === "confirmado" || a.status === "pendente")
+    .reduce((acc, curr) => acc + (curr.services?.preco || 0), 0);
+
+  const faturamentoRealizado = periodAppointments
     .filter(a => a.status === "concluido")
     .reduce((acc, curr) => acc + (curr.services?.preco || 0), 0);
 
@@ -184,14 +188,19 @@ export default function DashboardPage() {
 
   // --- DADOS PARA GRÁFICOS ---
   const dadosGraficoFaturamento = useMemo(() => {
-    const concluidos = periodAppointments.filter(a => a.status === "concluido");
-    const grouped = concluidos.reduce((acc, curr) => {
+    const validos = periodAppointments.filter(a => a.status === "concluido" || a.status === "confirmado" || a.status === "pendente");
+    const grouped = validos.reduce((acc, curr) => {
       const parts = curr.data.split('-');
       const dateLabel = parts.length === 3 ? `${parts[2]}/${parts[1]}` : curr.data;
-      acc[dateLabel] = (acc[dateLabel] || 0) + (curr.services?.preco || 0);
+      if (!acc[dateLabel]) acc[dateLabel] = { date: dateLabel, previsto: 0, realizado: 0 };
+      
+      const val = curr.services?.preco || 0;
+      if (curr.status === "concluido") acc[dateLabel].realizado += val;
+      if (curr.status === "confirmado" || curr.status === "pendente") acc[dateLabel].previsto += val;
+      
       return acc;
-    }, {} as Record<string, number>);
-    return Object.entries(grouped).map(([date, valor]) => ({ date, valor }));
+    }, {} as Record<string, { date: string; previsto: number; realizado: number }>);
+    return Object.values(grouped);
   }, [periodAppointments]);
 
   const dadosGraficoStatus = useMemo(() => {
@@ -225,11 +234,16 @@ export default function DashboardPage() {
   const CustomTooltipFaturamento = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-lg text-sm">
-          <p className="font-semibold text-slate-800 mb-1">{label}</p>
-          <p className="text-brand font-bold">
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(payload[0].value)}
-          </p>
+        <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-lg text-sm min-w-[160px]">
+          <p className="font-semibold text-slate-800 mb-2">{label}</p>
+          {payload.map((entry: any, i: number) => (
+             <div key={i} className="flex justify-between items-center gap-4 mb-1">
+               <span className="text-slate-500">{entry.name}</span>
+               <span className="font-bold" style={{ color: entry.color }}>
+                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(entry.value)}
+               </span>
+             </div>
+          ))}
         </div>
       );
     }
@@ -272,12 +286,16 @@ export default function DashboardPage() {
   const showToast = (msg: string) => setToastMsg(msg);
 
   const handleStatusChange = async (id: string, newStatus: AppointmentStatus, toastMessage: string) => {
+    // Optimistic Update para refletir instantaneamente
+    setAppointmentsQuery(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
+
     try {
       const { error } = await supabase.from('appointments').update({ status: newStatus }).eq('id', id);
       if (error) throw error;
       showToast(toastMessage);
     } catch {
       showToast("Falha ao atualizar.");
+      if (salonId) fetchAppointments(salonId); // Rollback locally on error
     }
   };
 
@@ -397,59 +415,83 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="p-5 flex items-center gap-4 relative overflow-hidden group">
-          <div className="absolute right-0 top-0 w-16 h-16 bg-brand/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-brand shrink-0">
-            <CalendarDays className="w-6 h-6" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <Card className="p-3 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3 relative overflow-hidden group">
+          <div className="absolute right-0 top-0 w-12 h-12 bg-blue-500/5 rounded-bl-full -mr-3 -mt-3 transition-transform group-hover:scale-110" />
+          <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+            <CalendarDays className="w-4 h-4 md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 font-medium mb-0.5">Atendimentos</p>
+            <p className="text-[10px] md:text-sm text-slate-500 font-medium mb-0.5 whitespace-nowrap">Atendimentos</p>
             {isLoading ? 
-              <div className="h-7 w-16 bg-slate-200 rounded animate-pulse"></div> : 
-              <p className="text-xl font-bold text-slate-800">{atendimentosFilter}</p>
+              <div className="h-6 w-12 bg-slate-200 rounded animate-pulse"></div> : 
+              <p className="text-lg md:text-xl font-bold text-slate-800">{atendimentosFilter}</p>
             }
           </div>
         </Card>
         
-        <Card className="p-5 flex items-center gap-4 relative overflow-hidden group">
-          <div className="absolute right-0 top-0 w-16 h-16 bg-green-500/5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-          <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 shrink-0">
-            <DollarSign className="w-6 h-6" />
+        <Card title="Agendamentos confirmados e pendentes" className="p-3 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3 relative overflow-hidden group">
+          <div className="absolute right-0 top-0 w-12 h-12 bg-brand/5 rounded-bl-full -mr-3 -mt-3 transition-transform group-hover:scale-110" />
+          <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl bg-brand/10 flex items-center justify-center text-brand shrink-0">
+            <CalendarDays className="w-4 h-4 md:w-6 md:h-6" />
           </div>
           <div>
-            <p className="text-sm text-slate-500 font-medium mb-0.5">Faturamento</p>
+            <p className="text-[10px] md:text-sm text-slate-500 font-medium mb-0.5 whitespace-nowrap">Previsto</p>
             {isLoading ? 
-              <div className="h-7 w-24 bg-slate-200 rounded animate-pulse"></div> : 
-              <p className="text-xl font-bold text-slate-800">
-                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faturamento)}
+              <div className="h-6 w-20 bg-slate-200 rounded animate-pulse"></div> : 
+              <p className="text-[15px] md:text-xl font-bold text-brand whitespace-nowrap tracking-tight">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faturamentoPrevisto)}
+              </p>
+            }
+          </div>
+        </Card>
+
+        <Card title="Serviços já concluídos" className="p-3 md:p-5 flex flex-col sm:flex-row sm:items-center gap-3 relative overflow-hidden group">
+          <div className="absolute right-0 top-0 w-12 h-12 bg-green-500/5 rounded-bl-full -mr-3 -mt-3 transition-transform group-hover:scale-110" />
+          <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 shrink-0">
+            <DollarSign className="w-4 h-4 md:w-6 md:h-6" />
+          </div>
+          <div>
+            <p className="text-[10px] md:text-sm text-slate-500 font-medium mb-0.5 whitespace-nowrap">Realizado</p>
+            {isLoading ? 
+              <div className="h-6 w-20 bg-slate-200 rounded animate-pulse"></div> : 
+              <p className="text-[15px] md:text-xl font-bold text-green-600 whitespace-nowrap tracking-tight">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faturamentoRealizado)}
               </p>
             }
           </div>
         </Card>
         
-        <Card className="p-5 relative overflow-hidden flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="w-4 h-4 text-amber-500" />
-              <div className="text-sm font-bold text-slate-700">Horários Livres (Hoje)</div>
+        <Card className="p-3 md:p-5 relative overflow-hidden flex flex-col justify-center">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1">
+              <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500 shrink-0" />
+              <div className="text-[10px] md:text-sm font-bold text-slate-700 whitespace-nowrap shrink-0 overflow-hidden">Horários Livres (Hoje)</div>
             </div>
             {isLoading ? (
-               <div className="h-4 w-40 bg-slate-200 rounded animate-pulse mt-1"></div>
+               <div className="h-4 w-16 bg-slate-200 rounded animate-pulse mt-1"></div>
             ) : (
-              <p className="text-xs text-slate-500">
-                <span className="text-amber-500 font-bold ml-1">{livresPendentesHoje}</span> pendentes • 
-                <span className="text-red-400 font-bold ml-1">{livresCanceladosHoje}</span> cancelados
+              <p className="text-[10px] md:text-xs text-slate-500 leading-tight">
+                <span className="text-amber-500 font-bold">{livresPendentesHoje}</span> pend.<br className="md:hidden" />
+                <span className="hidden md:inline"> • </span>
+                <span className="text-red-400 font-bold md:ml-1 mt-0.5 md:mt-0">{livresCanceladosHoje}</span> canc.
               </p>
             )}
         </Card>
       </div>
 
-      <div className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm text-center">
-         <span>{getFilterLabel()}:</span> 
-         <span className="text-green-600 font-bold">{confirmadosPeriodo} confirmados</span> • 
-         <span className="text-amber-500 font-bold">{pendentesPeriodo} pendentes</span> • 
-         <span className="text-slate-600 font-bold">{concluidosPeriodo} concluídos</span> • 
-         <span className="text-red-400 font-bold">{canceladosPeriodo} cancelados</span>
+      <div className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 py-3 px-4 rounded-xl flex flex-wrap items-center justify-center gap-y-2 gap-x-4 shadow-sm text-center">
+         <div>
+           <span className="text-slate-700">Período: </span> 
+           <span className="text-green-600 font-bold">{confirmadosPeriodo} confirmados</span> • 
+           <span className="text-amber-500 font-bold">{pendentesPeriodo} pendentes</span> • 
+           <span className="text-slate-600 font-bold">{concluidosPeriodo} concluídos</span> • 
+           <span className="text-red-400 font-bold">{canceladosPeriodo} cancelados</span>
+         </div>
+         <div className="hidden lg:block w-px h-4 bg-slate-300"></div>
+         <div>
+           <span className="text-brand font-bold lg:mr-3 mr-2">Previsto: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faturamentoPrevisto)}</span>
+           <span className="text-green-600 font-bold">Realizado: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(faturamentoRealizado)}</span>
+         </div>
       </div>
 
       {/* Agenda Section */}
@@ -506,9 +548,13 @@ export default function DashboardPage() {
                           {app.clients?.nome || "Cliente Desconhecido"}
                         </span>
                         
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap mt-[2px]">
                           <span className={`text-sm ${isCanceled ? 'text-slate-400' : 'text-slate-500'}`}>
-                            {app.services?.nome || "Serviço"} • {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(app.services?.preco || 0)}
+                            {app.services?.nome || "Serviço"}
+                          </span>
+                          <span className="text-slate-300">•</span>
+                          <span className={`text-sm font-bold ${app.status === 'concluido' ? 'text-green-600' : isCanceled ? 'text-slate-400 line-through' : 'text-brand'}`}>
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(app.services?.preco || 0)}
                           </span>
                           <Badge status={app.status} />
                         </div>
@@ -519,7 +565,10 @@ export default function DashboardPage() {
                       
                       {app.status === "pendente" && (
                         <>
-                          <button onClick={() => handleStatusChange(app.id, "confirmado", "Confirmado")} className="p-1.5 sm:px-3 bg-brand text-white text-xs font-bold rounded-lg hover:bg-brand-hover shadow-sm"><CheckCircle2 className="w-3.5 h-3.5 sm:hidden" /><span className="hidden sm:inline">Confirmar</span></button>
+                          <button onClick={() => {
+                            const val = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(app.services?.preco || 0);
+                            handleStatusChange(app.id, "confirmado", `📅 Agendamento confirmado! ${val} adicionado ao previsto.`);
+                          }} className="p-1.5 sm:px-3 bg-brand text-white text-xs font-bold rounded-lg hover:bg-brand-hover shadow-sm"><CheckCircle2 className="w-3.5 h-3.5 sm:hidden" /><span className="hidden sm:inline">Confirmar</span></button>
                           <button onClick={() => openWhatsApp(app.clients?.telefone||"", app.clients?.nome||"", formatHora(app.hora_inicio), "solicitação recebida")} className="p-1.5 sm:px-3 bg-[#25D366]/10 text-[#25D366] text-xs font-bold rounded-lg"><MessageCircle className="w-3.5 h-3.5 sm:hidden" /><span className="hidden sm:inline">WhatsApp</span></button>
                           <button onClick={() => handleStatusChange(app.id, "cancelado", "Cancelado")} className="p-1.5 sm:px-3 border border-red-500 text-red-500 text-xs font-bold rounded-lg hover:bg-red-50"><span className="hidden sm:inline">Cancelar</span><span className="sm:hidden">✖</span></button>
                         </>
@@ -527,7 +576,10 @@ export default function DashboardPage() {
 
                       {app.status === "confirmado" && (
                         <>
-                          <button onClick={() => handleStatusChange(app.id, "concluido", `Concluído`)} className="p-1.5 sm:px-3 border border-green-500 text-green-600 text-xs font-bold rounded-lg hover:bg-green-50"><CheckCircle2 className="w-3.5 h-3.5 sm:hidden" /><span className="hidden sm:inline">Concluir</span></button>
+                          <button onClick={() => {
+                            const val = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(app.services?.preco || 0);
+                            handleStatusChange(app.id, "concluido", `✅ Serviço concluído! ${val} adicionado ao faturamento realizado.`);
+                          }} className="p-1.5 sm:px-3 border border-green-500 text-green-600 text-xs font-bold rounded-lg hover:bg-green-50"><CheckCircle2 className="w-3.5 h-3.5 sm:hidden" /><span className="hidden sm:inline">Concluir</span></button>
                           <button onClick={() => openWhatsApp(app.clients?.telefone||"", app.clients?.nome||"", formatHora(app.hora_inicio), "horário confirmado")} className="p-1.5 sm:px-3 bg-[#25D366]/10 text-[#25D366] text-xs font-bold rounded-lg"><MessageCircle className="w-3.5 h-3.5 sm:hidden" /><span className="hidden sm:inline">WhatsApp</span></button>
                           <button onClick={() => handleStatusChange(app.id, "cancelado", "Cancelado")} className="p-1.5 sm:px-3 border border-red-500 text-red-500 text-xs font-bold rounded-lg hover:bg-red-50"><span className="hidden sm:inline">Cancelar</span><span className="sm:hidden">✖</span></button>
                         </>
@@ -574,7 +626,8 @@ export default function DashboardPage() {
                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val: number) => `R$${val}`} />
                     <RechartsTooltip content={<CustomTooltipFaturamento />} cursor={{ fill: '#f8fafc' }} />
-                    <Bar dataKey="valor" fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                    <Bar dataKey="previsto" name="Previsto" fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="realizado" name="Realizado" fill="#22C55E" radius={[4, 4, 0, 0]} maxBarSize={30} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
