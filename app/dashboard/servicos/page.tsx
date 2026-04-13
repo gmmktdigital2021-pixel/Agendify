@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Clock, DollarSign } from "lucide-react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -11,35 +11,51 @@ import { supabase } from "@/lib/supabase";
 
 interface Service {
   id: string;
-  name: string;
-  durationMin: number;
-  price: number;
+  nome: string;
+  duracao_minutos: number;
+  preco: number;
 }
 
-const mockServices: Service[] = [
-  { id: "1", name: "Corte Feminino", durationMin: 60, price: 80.00 },
-  { id: "2", name: "Progressiva", durationMin: 120, price: 250.00 },
-  { id: "3", name: "Coloração Raiz", durationMin: 90, price: 150.00 },
-  { id: "4", name: "Manicure Clássica", durationMin: 45, price: 35.00 },
-];
-
 export default function ServicosPage() {
-  const [services, setServices] = useState<Service[]>(mockServices);
+  const [services, setServices] = useState<Service[]>([]);
+  const [salonId, setSalonId] = useState<string | null>(null);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [targetService, setTargetService] = useState<Service | null>(null);
   
   // Form Logic
-  const [formData, setFormData] = useState({ name: "", durationMin: 45, price: 0.00 });
+  const [formData, setFormData] = useState({ nome: "", duracao_minutos: 45, preco: 0.00 });
   const [toastMsg, setToastMsg] = useState("");
+
+  useEffect(() => {
+    const loadServices = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: salon } = await supabase
+        .from('salons')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      if (!salon) return
+      setSalonId(salon.id)
+      const { data } = await supabase
+        .from('services')
+        .select('id, nome, duracao_minutos, preco')
+        .eq('salon_id', salon.id)
+        .order('nome')
+      if (data) setServices(data)
+    }
+    loadServices()
+  }, [])
 
   const openFormModal = (service?: Service) => {
     if (service) {
       setTargetService(service);
-      setFormData({ name: service.name, durationMin: service.durationMin, price: service.price });
+      setFormData({ nome: service.nome, duracao_minutos: service.duracao_minutos, preco: service.preco });
     } else {
       setTargetService(null);
-      setFormData({ name: "", durationMin: 60, price: 0 });
+      setFormData({ nome: "", duracao_minutos: 60, preco: 0 });
     }
     setIsModalOpen(true);
   };
@@ -52,27 +68,40 @@ export default function ServicosPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || formData.durationMin <= 0) return;
+    if (!formData.nome || formData.duracao_minutos <= 0 || !salonId) return;
 
     try {
       if (targetService) {
-        setServices(prev => prev.map(s => 
-          s.id === targetService.id ? { ...s, ...formData } : s
-        ));
-        setToastMsg("Serviço atualizado com sucesso.");
-        try {
-          await supabase.from("services").update(formData).eq("id", targetService.id);
-        } catch (error) {
-          console.error(error);
+        const { error } = await supabase
+          .from('services')
+          .update({ 
+            nome: formData.nome, 
+            duracao_minutos: formData.duracao_minutos, 
+            preco: formData.preco 
+          })
+          .eq('id', targetService.id);
+
+        if (!error) {
+          setServices(prev => prev.map(s => 
+            s.id === targetService.id ? { ...s, ...formData } : s
+          ));
+          setToastMsg("Serviço atualizado com sucesso.");
         }
       } else {
-        const novo = { id: Math.random().toString(), ...formData };
-        setServices([...services, novo]);
-        setToastMsg("Novo serviço criado.");
-        try {
-          await supabase.from("services").insert([novo]);
-        } catch (error) {
-          console.error(error);
+        const { data, error } = await supabase
+          .from('services')
+          .insert([{ 
+            salon_id: salonId, 
+            nome: formData.nome, 
+            duracao_minutos: formData.duracao_minutos, 
+            preco: formData.preco 
+          }])
+          .select()
+          .single();
+
+        if (!error && data) {
+          setServices(prev => [...prev, data]);
+          setToastMsg("Novo serviço criado.");
         }
       }
     } finally {
@@ -83,12 +112,14 @@ export default function ServicosPage() {
   const confirmDelete = async () => {
     if (!targetService) return;
     try {
-      setServices(prev => prev.filter(s => s.id !== targetService.id));
-      setToastMsg("Serviço excluído com sucesso.");
-      try {
-        await supabase.from("services").delete().eq("id", targetService.id);
-      } catch (error) {
-        console.error(error);
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', targetService.id);
+        
+      if (!error) {
+        setServices(prev => prev.filter(s => s.id !== targetService.id));
+        setToastMsg("Serviço excluído com sucesso.");
       }
     } finally {
       closeModals();
@@ -113,15 +144,15 @@ export default function ServicosPage() {
         {services.map((service) => (
           <Card key={service.id} className="p-5 flex flex-col justify-between group hover:shadow-md transition-shadow border-t-4 border-t-brand">
             <div>
-              <h3 className="font-bold text-lg text-slate-800 mb-4">{service.name}</h3>
+              <h3 className="font-bold text-lg text-slate-800 mb-4">{service.nome}</h3>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-slate-600 text-sm bg-slate-50 px-3 py-2 rounded-lg">
                   <Clock className="w-4 h-4 text-brand" />
-                  <span className="font-medium text-slate-900">{service.durationMin} min</span> de duração
+                  <span className="font-medium text-slate-900">{service.duracao_minutos} min</span> de duração
                 </div>
                 <div className="flex items-center gap-2 text-slate-600 text-sm bg-slate-50 px-3 py-2 rounded-lg">
                   <DollarSign className="w-4 h-4 text-green-500" />
-                  <span className="font-medium text-slate-900">R$ {service.price.toFixed(2).replace('.', ',')}</span>
+                  <span className="font-medium text-slate-900">R$ {Number(service.preco).toFixed(2).replace('.', ',')}</span>
                 </div>
               </div>
             </div>
@@ -163,8 +194,8 @@ export default function ServicosPage() {
         <form onSubmit={handleSave} className="flex flex-col gap-4">
           <Input 
             label="Nome do Serviço" 
-            value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            value={formData.nome}
+            onChange={(e) => setFormData({...formData, nome: e.target.value})}
             required 
             placeholder="Ex: Corte Degrade"
           />
@@ -174,8 +205,8 @@ export default function ServicosPage() {
               type="number"
               min="5"
               step="5"
-              value={formData.durationMin}
-              onChange={(e) => setFormData({...formData, durationMin: parseInt(e.target.value) || 0})}
+              value={formData.duracao_minutos}
+              onChange={(e) => setFormData({...formData, duracao_minutos: parseInt(e.target.value) || 0})}
               required 
             />
             <Input 
@@ -183,8 +214,8 @@ export default function ServicosPage() {
               type="number"
               step="0.01"
               min="0"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+              value={formData.preco}
+              onChange={(e) => setFormData({...formData, preco: parseFloat(e.target.value) || 0})}
               required 
             />
           </div>
@@ -203,7 +234,7 @@ export default function ServicosPage() {
       <Modal isOpen={isDeleteOpen} onClose={closeModals} title="Atenção!">
         <div className="space-y-4">
           <p className="text-slate-600">
-            Tem certeza que deseja excluir o serviço <strong>{targetService?.name}</strong>? 
+            Tem certeza que deseja excluir o serviço <strong>{targetService?.nome}</strong>? 
             Isso não apagará os agendamentos já criados com ele no passado.
           </p>
           <div className="flex justify-end gap-2 mt-6">
