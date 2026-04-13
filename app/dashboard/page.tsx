@@ -99,13 +99,7 @@ function processChartData(
   });
   return Object.values(weeks).sort((a, b) => a.label.localeCompare(b.label));
 }
-  id: string;
-  data: string;
-  hora_inicio: string;
-  status: AppointmentStatus;
-  clients: { nome: string; telefone: string } | null;
-  services: { nome: string; preco: number; duracao_minutos: number } | null;
-}
+
 
 type FilterOption = 'hoje' | 'ontem' | 'prox7d' | 'prox15d' | 'prox30d' | '7d' | '15d' | '30d' | '90d' | 'custom';
 
