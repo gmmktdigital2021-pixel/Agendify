@@ -16,6 +16,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { supabase, db } from "@/lib/supabase";
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 type AppointmentStatus = "confirmado" | "pendente" | "cancelado" | "concluido";
 
@@ -180,6 +181,84 @@ export default function DashboardPage() {
 
   const livresPendentesHoje = todayAppointments.filter(a => a.status === "pendente").length;
   const livresCanceladosHoje = todayAppointments.filter(a => a.status === "cancelado").length;
+
+  // --- DADOS PARA GRÁFICOS ---
+  const dadosGraficoFaturamento = useMemo(() => {
+    const concluidos = periodAppointments.filter(a => a.status === "concluido");
+    const grouped = concluidos.reduce((acc, curr) => {
+      const parts = curr.data.split('-');
+      const dateLabel = parts.length === 3 ? `${parts[2]}/${parts[1]}` : curr.data;
+      acc[dateLabel] = (acc[dateLabel] || 0) + (curr.services?.preco || 0);
+      return acc;
+    }, {} as Record<string, number>);
+    return Object.entries(grouped).map(([date, valor]) => ({ date, valor }));
+  }, [periodAppointments]);
+
+  const dadosGraficoStatus = useMemo(() => {
+    const counts = { confirmado: 0, concluido: 0, cancelado: 0, pendente: 0 };
+    periodAppointments.forEach(a => {
+      if (counts[a.status as keyof typeof counts] !== undefined) counts[a.status as keyof typeof counts]++;
+    });
+    return [
+      { name: 'Confirmado', value: counts.confirmado, color: '#22C55E' },
+      { name: 'Concluído', value: counts.concluido, color: '#374151' },
+      { name: 'Cancelado', value: counts.cancelado, color: '#EF4444' },
+      { name: 'Pendente', value: counts.pendente, color: '#F59E0B' }
+    ].filter(s => s.value > 0);
+  }, [periodAppointments]);
+
+  const totalAgendamentosGrafico = useMemo(() => {
+    return dadosGraficoStatus.reduce((acc, curr) => acc + curr.value, 0);
+  }, [dadosGraficoStatus]);
+
+  const dadosGraficoServicos = useMemo(() => {
+    const counts: Record<string, number> = {};
+    periodAppointments.forEach(a => {
+      const sName = a.services?.nome || "Outros";
+      counts[sName] = (counts[sName] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [periodAppointments]);
+
+  const CustomTooltipFaturamento = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-lg text-sm">
+          <p className="font-semibold text-slate-800 mb-1">{label}</p>
+          <p className="text-brand font-bold">
+            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(payload[0].value)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomTooltipStatus = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-lg text-sm">
+          <p className="font-semibold text-slate-800 mb-1">{payload[0].name}</p>
+          <p className="text-slate-600 font-medium">{payload[0].value} agendamentos</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomTooltipServicos = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-lg text-sm">
+          <p className="font-semibold text-slate-800 mb-1">{label}</p>
+          <p className="text-brand font-bold">{payload[0].value} agendamentos</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   // Search local filters
   const filteredAppointmentsList = useMemo(() => {
@@ -468,6 +547,130 @@ export default function DashboardPage() {
             )}
           </Card>
         )}
+      </div>
+
+      {/* Analytics Section */}
+      <div className="mt-12 pt-8 border-t border-slate-100">
+        <h3 className="text-xl font-bold text-slate-800 mb-6">Análises</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Gráfico 1 - Faturamento por Dia */}
+          <div className="md:col-span-2 bg-white border border-slate-200 rounded-[12px] p-6 shadow-sm">
+            <h4 className="text-[16px] font-semibold text-slate-900">Faturamento por Dia</h4>
+            <p className="text-[13px] text-slate-500 mb-6">Baseado no período selecionado</p>
+            
+            <div className="h-[250px] w-full">
+              {isLoading ? (
+                <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
+                  <span className="text-slate-400 text-sm">Carregando dados...</span>
+                </div>
+              ) : dadosGraficoFaturamento.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center border border-dashed border-slate-200 rounded-lg">
+                  <span className="text-slate-500 text-sm">Nenhum dado no período</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `R$${val}`} />
+                    <RechartsTooltip content={<CustomTooltipFaturamento />} cursor={{ fill: '#f8fafc' }} />
+                    <Bar dataKey="valor" fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico 2 - Atendimentos por Status */}
+          <div className="bg-white border border-slate-200 rounded-[12px] p-6 shadow-sm">
+            <h4 className="text-[16px] font-semibold text-slate-900">Atendimentos por Status</h4>
+            <p className="text-[13px] text-slate-500 mb-6">Baseado no período selecionado</p>
+            
+            <div className="h-[300px] w-full flex flex-col relative">
+              {isLoading ? (
+                <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
+                  <span className="text-slate-400 text-sm">Carregando dados...</span>
+                </div>
+              ) : dadosGraficoStatus.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center border border-dashed border-slate-200 rounded-lg">
+                  <span className="text-slate-500 text-sm">Nenhum dado no período</span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex-1 min-h-0 relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={dadosGraficoStatus}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={65}
+                          outerRadius={90}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {dadosGraficoStatus.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip content={<CustomTooltipStatus />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    
+                    {/* Total Center Text */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none">
+                       <span className="text-3xl font-bold text-slate-800">{totalAgendamentosGrafico}</span>
+                       <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Total</span>
+                    </div>
+                  </div>
+
+                  {/* Custom Legend */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 mt-4 pt-2">
+                    {dadosGraficoStatus.map((status, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: status.color }}></div>
+                        <span className="text-[11px] font-medium text-slate-600">{status.name} ({status.value})</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico 3 - Serviços Mais Agendados */}
+          <div className="bg-white border border-slate-200 rounded-[12px] p-6 shadow-sm">
+            <h4 className="text-[16px] font-semibold text-slate-900">Serviços Mais Agendados</h4>
+            <p className="text-[13px] text-slate-500 mb-6">Baseado no período selecionado</p>
+            
+            <div className="h-[300px] w-full">
+              {isLoading ? (
+                <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
+                  <span className="text-slate-400 text-sm">Carregando dados...</span>
+                </div>
+              ) : dadosGraficoServicos.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center border border-dashed border-slate-200 rounded-lg">
+                  <span className="text-slate-500 text-sm">Nenhum dado no período</span>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dadosGraficoServicos} layout="vertical" margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b' }} width={100} />
+                    <RechartsTooltip content={<CustomTooltipServicos />} cursor={{ fill: '#f8fafc' }} />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={30}>
+                      {dadosGraficoServicos.map((entry, index) => {
+                         const opacity = Math.max(0.3, 1 - (index * 0.15));
+                         return <Cell key={`cell-bar-${index}`} fill={`rgba(124, 58, 237, ${opacity})`} />;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
