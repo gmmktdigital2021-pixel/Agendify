@@ -291,11 +291,11 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      {/* Calendar Grid Container (flex-1 forces 100% remaining vertical space) */}
-      <div className="h-[calc(100vh-120px)] bg-white border border-slate-200 rounded-2xl shadow-sm overflow-y-auto flex flex-col custom-scrollbar">
+      {/* Calendar Grid Container */}
+      <div className="h-[calc(100vh-120px)] bg-white border border-slate-200 rounded-2xl shadow-sm overflow-y-auto flex flex-col custom-scrollbar relative">
         
         {/* Days Header */}
-        <div className="flex border-b border-slate-200 bg-white shrink-0">
+        <div className="sticky top-0 z-30 flex border-b border-slate-200 bg-white shrink-0">
           <div className="w-16 sm:w-20 shrink-0 border-r border-slate-200 flex items-center justify-center">
             <CalendarIcon className="w-5 h-5 text-slate-400" />
           </div>
@@ -324,23 +324,18 @@ export default function AgendaPage() {
         </div>
 
         {/* Time Slots Area */}
-        <div className="flex-1 overflow-y-auto bg-slate-50 relative custom-scrollbar">
-          <div className="flex relative" style={{ minHeight: `${timeSlots.length * SLOT_HEIGHT_PX}px` }}>
+        <div className="flex-1 bg-slate-50 relative flex">
+          <div className="flex w-full relative" style={{ minHeight: `${timeSlots.length * SLOT_HEIGHT_PX}px` }}>
             
             {/* Time Labels Column */}
-            <div className="w-16 sm:w-20 shrink-0 bg-white border-r border-slate-200 sticky left-0 z-20">
-               <div className="absolute inset-0 pointer-events-none opacity-50 z-0">
-                {timeSlots.map((time, i) => (
-                  <div key={i} className="h-16 border-b border-slate-200 w-full" />
-                ))}
-              </div>
+            <div className="w-16 sm:w-20 shrink-0 bg-white border-r border-slate-200 z-20">
               {timeSlots.map((time, i) => (
                 <div 
                   key={i} 
-                  className="h-16 flex items-start justify-center pt-2 relative z-10"
+                  className="h-16 border-b border-slate-200 flex items-start justify-center pt-2 relative"
                 >
                   {time.endsWith("00") && (
-                    <span className="text-xs font-medium text-slate-400 -mt-2 bg-white px-1">{time}</span>
+                    <span className="text-xs font-medium text-slate-400 -mt-2 bg-white px-1 relative z-10">{time}</span>
                   )}
                 </div>
               ))}
@@ -348,26 +343,19 @@ export default function AgendaPage() {
 
             {/* Days Columns */}
             <div className={`flex-1 grid ${isMobile ? 'grid-cols-1' : 'grid-cols-7'} relative`}>
-              {/* Horizontal grid lines for all columns */}
-              <div className="absolute inset-0 pointer-events-none opacity-50 z-0">
-                {timeSlots.map((_, i) => (
-                  <div key={i} className="h-16 border-b border-slate-200 w-full" />
-                ))}
-              </div>
-
               {daysToRender.map((date, colIndex) => {
                 const dateStr = date.toISOString().split("T")[0];
                 const dayAppointments = appointments.filter(a => a.data === dateStr);
 
                 return (
-                  <div key={colIndex} className="relative border-l first:border-l-0 border-slate-200 z-10 p-1">
+                  <div key={colIndex} className="relative border-l first:border-l-0 border-slate-200 z-10">
                      
-                    {/* Empty Slots Interactivity */}
+                    {/* Empty Slots Interactivity & Grid Lines */}
                     <div className="absolute inset-0 z-0 flex flex-col">
                       {timeSlots.map((time, i) => (
                         <div 
                           key={i} 
-                          className="h-16 w-full cursor-pointer group hover:bg-[#F5F3FF] transition-colors relative"
+                          className="h-16 w-full border-b border-slate-200 cursor-pointer group hover:bg-[#F5F3FF] transition-colors relative"
                           onClick={() => openSlotModal(dateStr, time)}
                         >
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -377,35 +365,37 @@ export default function AgendaPage() {
                       ))}
                     </div>
 
-                    {/* Appointment Cards */}
-                    {dayAppointments.map(app => {
-                      const duracao = app.services?.duracao_minutos || 60;
-                      const { top, height } = getPosAndHeight(app.hora_inicio, duracao);
-                      const isCanceled = app.status === "cancelado";
+                    {/* Appointment Cards Container*/}
+                    <div className="absolute inset-0 pointer-events-none">
+                      {dayAppointments.map(app => {
+                        const duracao = app.services?.duracao_minutos || 60;
+                        const { top, height } = getPosAndHeight(app.hora_inicio, duracao);
+                        const isCanceled = app.status === "cancelado";
 
-                      return (
-                        <div
-                          key={app.id}
-                          className={`absolute left-1 right-2 rounded-lg bg-white overflow-hidden shadow-sm border border-slate-200 cursor-pointer 
-                            transition-transform hover:scale-[1.02] hover:shadow-md z-10 flex
-                            ${isCanceled ? 'opacity-40 grayscale' : ''}`}
-                          style={{
-                            top: `${top}px`,
-                            height: `${Math.max(height - 4, 30)}px`,
-                          }}
-                        >
-                          <div className={`w-1.5 shrink-0 ${statusColors[app.status]}`} />
-                          <div className="p-2 overflow-hidden w-full flex flex-col justify-center">
-                            <span className={`text-sm font-bold text-slate-800 truncate ${isCanceled ? 'line-through text-slate-500' : ''}`}>
-                              {app.clients?.nome || "Online..."}
-                            </span>
-                            <span className={`text-[10px] sm:text-xs truncate ${isCanceled ? 'line-through text-slate-400' : 'text-slate-500'}`}>
-                              {app.hora_inicio.substring(0,5)} • {app.services?.nome || "Público"}
-                            </span>
+                        return (
+                          <div
+                            key={app.id}
+                            className={`absolute left-1 right-2 pointer-events-auto rounded-lg bg-white overflow-hidden shadow-sm border border-slate-200 cursor-pointer 
+                              transition-transform hover:scale-[1.02] hover:shadow-md z-10 flex
+                              ${isCanceled ? 'opacity-40 grayscale' : ''}`}
+                            style={{
+                              top: `${top}px`,
+                              height: `${Math.max(height - 4, 30)}px`,
+                            }}
+                          >
+                            <div className={`w-1.5 shrink-0 ${statusColors[app.status]}`} />
+                            <div className="p-2 overflow-hidden w-full flex flex-col justify-center">
+                              <span className={`text-sm font-bold text-slate-800 truncate ${isCanceled ? 'line-through text-slate-500' : ''}`}>
+                                {app.clients?.nome || "Online..."}
+                              </span>
+                              <span className={`text-[10px] sm:text-xs truncate ${isCanceled ? 'line-through text-slate-400' : 'text-slate-500'}`}>
+                                {app.hora_inicio.substring(0,5)} • {app.services?.nome || "Público"}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
