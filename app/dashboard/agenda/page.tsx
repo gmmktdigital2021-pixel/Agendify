@@ -43,7 +43,7 @@ export default function AgendaPage() {
   const [toastMsg, setToastMsg] = useState("");
   
   const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([]);
-  const [services, setServices] = useState<any[]>([]);
+  const [services, setServices] = useState<Array<{id: string, nome: string, duracao_minutos: number, preco: number}>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [salonId, setSalonId] = useState<string | null>(null);
 
@@ -68,24 +68,31 @@ export default function AgendaPage() {
   }, []);
 
   useEffect(() => {
-    const loadServices = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data: salon } = await supabase
-        .from('salons')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
-      if (!salon) return
-      const { data: fetchedServices } = await supabase
-        .from('services')
-        .select('id, nome, duracao_minutos, preco')
-        .eq('salon_id', salon.id)
-        .order('nome')
-      console.log('Serviços carregados:', fetchedServices)
-      if (fetchedServices) setServices(fetchedServices)
+    const loadData = async () => {
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        console.log('User:', user, 'Error:', userError)
+        if (!user) return
+
+        const { data: salonData, error: salonError } = await supabase
+          .from('salons')
+          .select('id')
+          .eq('user_id', user.id)
+          .single()
+        console.log('Salon:', salonData, 'Error:', salonError)
+        if (!salonData) return
+
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('id, nome, duracao_minutos, preco')
+          .eq('salon_id', salonData.id)
+        console.log('Services:', servicesData, 'Error:', servicesError)
+        if (servicesData) setServices(servicesData)
+      } catch (err) {
+        console.error('Erro ao carregar dados:', err)
+      }
     }
-    loadServices()
+    loadData()
   }, [])
 
   const fetchWeeklyAppointments = useCallback(async (sid: string, starts: string, ends: string) => {
@@ -198,32 +205,9 @@ export default function AgendaPage() {
     return { top, height };
   };
 
-  const openSlotModal = async (dateStr: string, timeStr: string) => {
+  const openSlotModal = (dateStr: string, timeStr: string) => {
     setFormData({ ...formData, data: dateStr, hora_inicio: timeStr, nome: "", telefone: "", service_id: "" });
     setModalOpen(true);
-    
-    // Passo 1: buscar o usuário logado
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    // Passo 2: buscar o salon do usuário
-    const { data: salon } = await supabase
-      .from('salons')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-
-    // Passo 3: buscar serviços usando o salon.id
-    if (salon) {
-      const { data: fetchedServices } = await supabase
-        .from('services')
-        .select('id, nome, duracao_minutos, preco')
-        .eq('salon_id', salon.id)
-        .order('nome');
-        
-      console.log('salon:', salon, 'services:', fetchedServices);
-      if (fetchedServices) setServices(fetchedServices);
-    }
   };
 
   const handleCreateAppointment = async () => {
@@ -455,7 +439,7 @@ export default function AgendaPage() {
                    {services && services.length > 0 ? (
                      services.map((service) => (
                        <option key={service.id} value={service.id}>
-                         {service.nome} — {service.duracao_minutos}min — R$ {service.preco}
+                         {service.nome} — {service.duracao_minutos}min — R$ {Number(service.preco).toFixed(2).replace('.', ',')}
                        </option>
                      ))
                    ) : (
