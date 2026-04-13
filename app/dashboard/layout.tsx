@@ -124,25 +124,26 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-[#F3F4F6] flex flex-col font-sans">
       
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex flex-col h-screen fixed left-0 top-0 z-50 shadow-lg bg-brand text-white transition-[width,box-shadow] duration-250 ease-in-out w-[64px] hover:w-[240px] group hover:shadow-[4px_0_24px_rgba(0,0,0,0.15)]">
+      <aside 
+        style={{ transition: 'width 0.25s cubic-bezier(0.4, 0, 0.2, 1)' }}
+        className="hidden md:flex flex-col h-screen fixed left-0 top-0 z-50 shadow-none bg-brand text-white w-[64px] hover:w-[240px] group hover:shadow-[4px_0_20px_rgba(0,0,0,0.12)]">
         <div className="flex flex-col h-full overflow-hidden w-full">
           {/* TOPO */}
-          <div className="p-4 flex items-center h-[76px] shrink-0 border-b border-white/5 w-full">
-            <Link href="/dashboard" className="flex items-center w-full group/logo transition-opacity">
-              <div className="w-[32px] flex items-center justify-center shrink-0">
-                <CalendarCheck className="w-6 h-6 text-white" />
+          <div className="pt-4 pb-4 flex items-center justify-center shrink-0 border-b border-white/5 w-full">
+            <Link href="/dashboard" className="flex items-center w-[36px] group-hover:w-[216px] transition-[width] duration-250 ease-in-out group/logo">
+              <div className="w-[36px] h-[36px] bg-white rounded-lg flex items-center justify-center shrink-0 mx-auto group-hover:mx-0 group-hover:ml-2 shadow-sm">
+                <CalendarCheck className="w-[28px] h-[28px] text-brand" />
               </div>
-              <div className="flex flex-col ml-0 opacity-0 w-0 overflow-hidden group-hover:opacity-100 group-hover:w-auto group-hover:ml-3 transition-[opacity,width,margin] duration-200 ease-in-out whitespace-nowrap delay-75">
+              <div 
+                style={{ transition: 'opacity 0.15s ease, max-width 0.25s ease' }}
+                className="flex flex-col ml-0 opacity-0 max-w-0 overflow-hidden group-hover:opacity-100 group-hover:max-w-[200px] group-hover:ml-3 whitespace-nowrap">
                 <span className="font-bold text-xl tracking-wide">Agendify</span>
-                <div className="text-xs text-white/80 font-medium truncate" title={salonName}>
-                  {salonName}
-                </div>
               </div>
             </Link>
           </div>
 
           {/* NAVEGAÇÃO DESKTOP */}
-          <nav className="flex-1 px-3 space-y-2 mt-4 custom-scrollbar overflow-x-hidden overflow-y-auto w-full">
+          <nav className="flex-1 py-4 space-y-2 overflow-x-hidden overflow-y-auto w-full custom-scrollbar">
             {navItems.map((item) => {
               const isActive = item.href === "/dashboard" 
                 ? pathname === "/dashboard" 
@@ -152,23 +153,27 @@ export default function DashboardLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center relative px-3 py-3 rounded-xl transition-colors group/navitem ${
+                  className={`flex items-center relative py-0 h-[44px] w-[44px] group-hover:w-[216px] mx-auto rounded-[10px] group-hover:px-3 transition-colors duration-250 group/navitem ${
                     isActive
-                      ? "bg-white/15"
-                      : "hover:bg-white/10"
+                      ? "bg-white/[0.18]"
+                      : "hover:bg-white/[0.10]"
                   }`}
                 >
-                  <div className="w-[32px] flex items-center justify-center shrink-0 relative">
-                    <item.icon className={`w-5 h-5 transition-colors ${isActive ? "text-white" : "text-white/70 group-hover/navitem:text-white"}`} />
+                  <div className="w-[44px] h-[44px] flex items-center justify-center shrink-0 relative">
+                    <item.icon className={`w-[20px] h-[20px] transition-colors ${isActive ? "text-white" : "text-white/70 group-hover/navitem:text-white"}`} />
                     
                     {/* Badge Collapsed (Small Dot) */}
                     {item.badge !== undefined && item.badge > 0 && (
-                      <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-brand transition-opacity opacity-100 group-hover:opacity-0" />
+                      <span className="absolute top-1.5 right-1.5 w-[16px] h-[16px] bg-[#EF4444] rounded-full text-[9px] font-bold text-white flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity">
+                         {item.badge > 9 ? '+9' : item.badge}
+                      </span>
                     )}
                   </div>
                   
-                  <div className="flex items-center justify-between opacity-0 w-0 overflow-hidden group-hover:opacity-100 group-hover:w-full ml-0 group-hover:ml-3 transition-[opacity,width,margin] duration-200 ease-in-out whitespace-nowrap delay-75">
-                    <span className={`font-medium text-[14px] ${isActive ? "text-white font-bold" : "text-white/70 group-hover/navitem:text-white"}`}>
+                  <div 
+                    style={{ transition: 'opacity 0.15s ease, max-width 0.25s ease' }}
+                    className="flex items-center justify-between opacity-0 max-w-0 overflow-hidden group-hover:opacity-100 group-hover:max-w-[200px] whitespace-nowrap">
+                    <span className={`font-medium text-[14px] ml-2 ${isActive ? "text-white font-bold" : "text-white/70 group-hover/navitem:text-white"}`}>
                       {item.name === "Config." ? "Configurações" : item.name}
                     </span>
                     
@@ -181,7 +186,7 @@ export default function DashboardLayout({
                   </div>
 
                   {/* Tooltip Collapsed State */}
-                  <div className="absolute left-[64px] top-1/2 -translate-y-1/2 bg-[#111827] text-white text-[12px] font-medium px-[10px] py-[4px] rounded-[6px] opacity-0 pointer-events-none transition-opacity duration-200 ease-in-out group-hover/navitem:opacity-100 group-hover/navitem:delay-300 group-hover:hidden z-50 whitespace-nowrap shadow-md">
+                  <div className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 bg-[#111827] text-white text-[12px] font-medium px-[10px] py-[4px] rounded-[6px] opacity-0 pointer-events-none transition-opacity duration-200 ease-in-out group-hover/navitem:opacity-100 group-hover/navitem:delay-[400ms] group-hover:hidden z-[9999] whitespace-nowrap shadow-md after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-1 after:border-[4px] after:border-r-[#111827] after:border-y-transparent after:border-l-transparent">
                     {item.name === "Config." ? "Configurações" : item.name}
                   </div>
                 </Link>
@@ -190,28 +195,26 @@ export default function DashboardLayout({
           </nav>
 
           {/* RODAPÉ DESKTOP */}
-          <div className="p-3 mb-4 shrink-0 border-t border-white/5 pt-4 w-full">
-            <div className="flex items-center relative w-full group/footer h-10 px-1">
-              <div className="w-[40px] flex items-center justify-center shrink-0">
+          <div className="py-4 shrink-0 border-t border-white/5 w-full">
+            <div className="flex items-center relative w-[36px] group-hover:w-[216px] group-hover:px-3 mx-auto h-[36px] transition-[width,padding] duration-250 ease-in-out group/footer cursor-pointer">
+              <div className="w-[36px] h-[36px] flex items-center justify-center shrink-0">
                 {salonFotoPerfil ? (
-                  <img src={salonFotoPerfil} alt="Perfil" className="w-8 h-8 rounded-full object-cover bg-white/20 border border-white/10" />
+                  <img src={salonFotoPerfil} alt="Perfil" className="w-[36px] h-[36px] rounded-full object-cover bg-white/20" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs ring-1 ring-white/10">
+                  <div className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
                     {userInitials}
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-between opacity-0 w-0 overflow-hidden group-hover:opacity-100 group-hover:w-full group-hover:ml-3 transition-[opacity,width,margin] duration-200 ease-in-out whitespace-nowrap delay-75 pr-1">
+              <div 
+                style={{ transition: 'opacity 0.15s ease, max-width 0.25s ease' }}
+                className="flex items-center justify-between opacity-0 max-w-0 overflow-hidden group-hover:opacity-100 group-hover:max-w-[200px] whitespace-nowrap ml-0 group-hover:ml-3 w-full">
                 <div className="flex flex-col">
                    <p className="text-[13px] font-medium text-white max-w-[100px] truncate">{userEmail}</p>
                 </div>
                 <button onClick={handleLogout} className="p-2 hover:bg-white/20 rounded-lg text-white/80 hover:text-white transition-colors" title="Sair">
                    <LogOut className="w-4 h-4" />
                 </button>
-              </div>
-              
-              <div className="absolute left-[64px] top-1/2 -translate-y-1/2 bg-[#111827] text-white text-[12px] font-medium px-[10px] py-[4px] rounded-[6px] opacity-0 pointer-events-none transition-opacity duration-200 ease-in-out group-hover/footer:opacity-100 group-hover/footer:delay-300 group-hover:hidden z-50 whitespace-nowrap shadow-md">
-                 Perfil
               </div>
             </div>
           </div>
