@@ -572,7 +572,7 @@ export default function DashboardPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dadosGraficoFaturamento} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `R$${val}`} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val: number) => `R$${val}`} />
                     <RechartsTooltip content={<CustomTooltipFaturamento />} cursor={{ fill: '#f8fafc' }} />
                     <Bar dataKey="valor" fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={50} />
                   </BarChart>
