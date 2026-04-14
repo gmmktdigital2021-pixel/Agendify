@@ -5,8 +5,12 @@ import { CalendarCheck, ChevronLeft, Check, Clock, CalendarDays, User, Phone, Ch
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Toast } from "@/components/Toast";
-import { supabase, db } from "@/lib/supabase";
-import { createFullAppointment } from "@/lib/supabase";
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export default function AgendarPage({ params }: { params: { salonId: string } }) {
   const { salonId } = params;
@@ -33,10 +37,10 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
   useEffect(() => {
     async function loadData() {
       try {
-        const { data: salonData } = await db.salons.select('*').eq('id', salonId).single();
+        const { data: salonData } = await supabase.from('salons').select('*').eq('id', salonId).single();
         if (salonData) setSalon(salonData);
 
-        const { data: szData } = await db.services.select('*').eq('salon_id', salonId);
+        const { data: szData } = await supabase.from('services').select('*').eq('salon_id', salonId);
         if (szData) setServices(szData);
         
       } catch (e) {
@@ -52,7 +56,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
   useEffect(() => {
     if (selectedDate && salonId && step === 3) {
       const loadAppts = async () => {
-        const { data } = await db.appointments
+        const { data } = await supabase.from('appointments')
           .select(`id, hora_inicio, status, services(duracao_minutos)`)
           .eq('salon_id', salonId)
           .eq('data', selectedDate)
@@ -147,7 +151,8 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
           .single();
 
         if (clientError || !newClient) {
-          setToastMsg('Erro ao cadastrar cliente. Tente novamente.');
+          console.error('Erro detalhado:', clientError ? JSON.stringify(clientError) : 'newClient is null');
+          setToastMsg('Erro: ' + (clientError?.message || 'Desconhecido') + ' | Code: ' + (clientError?.code || ''));
           setIsSubmitLoading(false);
           return;
         }
