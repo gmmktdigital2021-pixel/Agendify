@@ -85,22 +85,31 @@ export default function ConfiguracoesPage() {
 
   const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>, type: 'perfil' | 'capa') => {
     try {
-      if (!e.target.files || e.target.files.length === 0 || !userId) return;
+      if (!e.target.files || e.target.files.length === 0 || !userId || !salonId) return;
       const file = e.target.files[0];
       setToastMsg(`Fazendo upload da foto de ${type}...`);
       setIsSaving(true);
       
-      const filePath = `${userId}/${type}-${Date.now()}.jpg`;
+      const filePath = `${userId}/${type}.jpg`;
 
-      const { error: uploadError } = await supabase.storage.from('salon-images').upload(filePath, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage.from('salon-images').upload(filePath, file, { upsert: true, cacheControl: '0' });
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from('salon-images').getPublicUrl(filePath);
-      setFormData(prev => ({ ...prev, [type === 'perfil' ? 'foto_perfil' : 'foto_capa']: data.publicUrl }));
-      setToastMsg(`Foto de ${type} carregada com sucesso!`);
-    } catch (err) {
+      const finalUrl = `${data.publicUrl}?t=${Date.now()}`;
+      
+      setFormData(prev => ({ ...prev, [type === 'perfil' ? 'foto_perfil' : 'foto_capa']: finalUrl }));
+
+      const { error: updateError } = await supabase.from("salons").update({
+        [type === 'perfil' ? 'foto_perfil' : 'foto_capa']: finalUrl
+      }).eq("id", salonId).eq("user_id", userId);
+
+      if (updateError) throw updateError;
+      
+      setToastMsg(`Foto de ${type} atualizada e salva com sucesso!`);
+    } catch (err: any) {
       console.error(err);
-      setToastMsg("Erro ao fazer upload da imagem.");
+      setToastMsg(`Erro ao fazer upload da imagem: ${err.message || ''}`);
     } finally {
       setIsSaving(false);
     }
@@ -108,7 +117,7 @@ export default function ConfiguracoesPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!salonId) return;
+    if (!salonId || !userId) return;
     setIsSaving(true);
     
     try {
@@ -129,12 +138,13 @@ export default function ConfiguracoesPage() {
         foto_capa: formData.foto_capa,
         cor_principal: formData.cor_principal,
         dias_ativos: activeArr
-      }).eq("id", salonId);
+      }).eq("id", salonId).eq("user_id", userId);
       
       if (error) throw error;
       setToastMsg("✅ Configurações salvas com sucesso!");
-    } catch {
-      setToastMsg("As configurações não puderam ser atualizadas. Verifique rede.");
+    } catch (error: any) {
+      console.error("Erro ao salvar:", error);
+      setToastMsg(`Erro ao salvar: ${error.message || 'Verifique sua conexão.'}`);
     } finally {
       setIsSaving(false);
     }
