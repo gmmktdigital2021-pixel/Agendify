@@ -168,16 +168,16 @@ export default function ConfiguracoesPage() {
     seg: "Seg", ter: "Ter", qua: "Qua", qui: "Qui", sex: "Sex", sab: "Sáb", dom: "Dom"
   };
 
-  const generatedLink = salonId ? `${process.env.NEXT_PUBLIC_SITE_URL || ''}/agendar/${salonId}` : "";
+  const fullLink = `${process.env.NEXT_PUBLIC_SITE_URL}/agendar/${salonId}`;
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedLink);
+    navigator.clipboard.writeText(fullLink);
     setToastMsg("Link copiado!");
   };
 
   const shareWhatsAppConfig = () => {
-    const text = encodeURIComponent(`Agende seu horário comigo: ${generatedLink}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent('Agende seu horário comigo pelo link: ' + fullLink)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   if (isLoading) return <div className="p-10 font-medium text-slate-500">Carregando painel de configuração...</div>;
@@ -208,7 +208,7 @@ export default function ConfiguracoesPage() {
                 <input 
                   type="text" 
                   readOnly 
-                  value={generatedLink}
+                  value={fullLink}
                   className="w-full px-4 py-3 bg-brand/10 border border-brand/20 rounded-lg text-brand font-bold text-sm outline-none"
                 />
               </div>
@@ -216,7 +216,7 @@ export default function ConfiguracoesPage() {
                 <Button type="button" variant="primary" onClick={copyToClipboard} className="flex-1 sm:flex-none gap-2">
                   <Copy className="w-4 h-4" /> Copiar Link
                 </Button>
-                <Button type="button" variant="secondary" onClick={() => window.open(generatedLink, '_blank')} className="gap-2 border-brand/20 text-brand">
+                <Button type="button" variant="secondary" onClick={() => window.open(fullLink, '_blank')} className="gap-2 border-brand/20 text-brand">
                   <ExternalLink className="w-4 h-4" /> Testar
                 </Button>
               </div>
