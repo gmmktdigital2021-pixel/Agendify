@@ -271,7 +271,7 @@ export default function ConfiguracoesPage() {
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Mensagem de Boas-vindas</label>
-              <textarea value={formData.mensagem_boas_vindas} onChange={(e) => setFormData({ ...formData, mensagem_boas_vindas: e.target.value })} maxLength={200} placeholder="Ex: Bem-vinda! Agende com facilidade." className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:outline-none focus:border-brand resize-none h-20" />
+              <textarea value={formData.mensagem_boas_vindas} onChange={(e) => setFormData({ ...formData, mensagem_boas_vindas: e.target.value })} maxLength={200} placeholder="Ex: Bem-vinda! Agende com facilidade." className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:bg-white focus:outline-none focus:border-brand resize-none h-20 placeholder:text-slate-400" />
               <div className="text-right text-[11px] font-semibold text-slate-400 mt-1">{formData.mensagem_boas_vindas.length}/200 caracteres</div>
             </div>
           </div>
@@ -374,7 +374,7 @@ export default function ConfiguracoesPage() {
             ))}
           </div>
           <textarea ref={textAreaRef} value={formData.mensagem_padrao} onChange={(e) => setFormData({ ...formData, mensagem_padrao: e.target.value })}
-            className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:outline-none focus:border-brand h-28 resize-none mb-2" />
+            className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:bg-white focus:outline-none focus:border-brand h-28 resize-none mb-2 placeholder:text-slate-400" />
           <div className="flex justify-end mb-4">
             <button type="button" onClick={() => setFormData({ ...formData, mensagem_padrao: WHATSAPP_DEFAULT })} className="text-[12px] font-bold text-slate-400 hover:text-brand transition-colors">Restaurar padrão</button>
           </div>
