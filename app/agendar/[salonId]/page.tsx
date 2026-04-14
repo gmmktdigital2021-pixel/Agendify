@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { CalendarCheck, ChevronLeft, Check, Clock, CalendarDays, User, Phone, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
+import { Toast } from "@/components/Toast";
 import { supabase, db } from "@/lib/supabase";
 import { createFullAppointment } from "@/lib/supabase";
 
@@ -20,6 +21,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
   const [step, setStep] = useState(1);
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
 
   // Form State
   const [selectedService, setSelectedService] = useState<any>(null);
@@ -118,16 +120,68 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
   }, [salon, selectedService, selectedDate, appointmentsFilterDate]);
 
 
-  const handleSubmit = async () => {
+  const handleConfirmarAgendamento = async () => {
     setIsSubmitLoading(true);
     try {
-      await createFullAppointment(salonId, clientData, {
-        service_id: selectedService.id,
-        data: selectedDate,
-        hora_inicio: selectedTime,
-        status: 'pendente'
-      });
-      
+      // Passo 1: criar ou buscar cliente
+      let clientId: string;
+
+      const { data: existingClient } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('salon_id', salonId)
+        .eq('telefone', clientData.telefone.replace(/\D/g, ''))
+        .single();
+
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else {
+        const { data: newClient, error: clientError } = await supabase
+          .from('clients')
+          .insert([{
+            salon_id: salonId,
+            nome: clientData.nome,
+            telefone: clientData.telefone.replace(/\D/g, '')
+          }])
+          .select('id')
+          .single();
+
+        if (clientError || !newClient) {
+          setToastMsg('Erro ao cadastrar cliente. Tente novamente.');
+          setIsSubmitLoading(false);
+          return;
+        }
+        clientId = newClient.id;
+      }
+
+      // Passo 2: calcular hora_fim
+      const [horas, minutos] = selectedTime.split(':').map(Number);
+      const inicio = new Date();
+      inicio.setHours(horas, minutos, 0, 0);
+      const fim = new Date(inicio.getTime() + selectedService.duracao_minutos * 60000);
+      const horaFim = `${String(fim.getHours()).padStart(2, '0')}:${String(fim.getMinutes()).padStart(2, '0')}`;
+
+      // Passo 3: criar agendamento
+      const { error: apptError } = await supabase
+        .from('appointments')
+        .insert([{
+          salon_id: salonId,
+          client_id: clientId,
+          service_id: selectedService.id,
+          data: selectedDate,
+          hora_inicio: selectedTime,
+          hora_fim: horaFim,
+          status: 'pendente'
+        }]);
+
+      if (apptError) {
+        console.error('Erro ao criar agendamento:', apptError);
+        setToastMsg('Erro ao criar agendamento: ' + apptError.message);
+        setIsSubmitLoading(false);
+        return;
+      }
+
+      // Passo 4: sucesso
       setSuccess(true);
       
       // WhatsApp Forwarding
@@ -145,10 +199,10 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
       if (cleanPhone) {
         setTimeout(() => window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank'), 1500);
       }
-      
-    } catch (e) {
-      console.error(e);
-      alert("Falha de conexão. Tente novamente.");
+
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      setToastMsg('Falha de conexão. Tente novamente.');
     } finally {
       setIsSubmitLoading(false);
     }
@@ -302,7 +356,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
                      const selectedDayName = daysNames[obj.getDay()];
                      
                      if (salon.dias_ativos && !salon.dias_ativos.includes(selectedDayName)) {
-                         alert("Lamentamos, o estabelecimento não atende neste dia da semana. Selecione outro.");
+                         setToastMsg("Lamentamos, o estabelecimento não atende neste dia da semana. Selecione outro.");
                          setSelectedDate("");
                          return;
                      }
@@ -387,7 +441,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
 
               <div className="mt-8">
                  <Button 
-                   onClick={handleSubmit} 
+                   onClick={handleConfirmarAgendamento} 
                    disabled={isSubmitLoading} 
                    className="w-full text-lg py-3.5 gap-2"
                  >
@@ -400,6 +454,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
 
         </div>
       </div>
+      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
     </div>
   );
 }
