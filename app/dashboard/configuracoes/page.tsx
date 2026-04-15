@@ -125,7 +125,7 @@ export default function ConfiguracoesPage() {
       const file = e.target.files[0];
       setToastMsg(`Fazendo upload da foto de ${type}...`);
       setIsSaving(true);
-      const filePath = `${userId}/${type}.jpg`;
+      const filePath = `${salonId}/${type}-${Date.now()}.jpg`;
       const { error: uploadError } = await supabase.storage
         .from('salon-images').upload(filePath, file, { upsert: true, cacheControl: '0' });
       if (uploadError) throw uploadError;
