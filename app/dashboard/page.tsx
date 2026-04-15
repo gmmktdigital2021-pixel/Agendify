@@ -427,6 +427,10 @@ export default function DashboardPage() {
   const showToast = (msg: string) => setToastMsg(msg);
 
   const handleStatusChange = async (id: string, newStatus: AppointmentStatus, toastMessage: string) => {
+    // Salva o status original para possível rollback
+    const originalAppointment = appointmentsQuery.find(app => app.id === id);
+    const originalStatus = originalAppointment?.status;
+
     // Optimistic Update para refletir instantaneamente
     setAppointmentsQuery(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
 
@@ -435,8 +439,11 @@ export default function DashboardPage() {
       if (error) throw error;
       showToast(toastMessage);
     } catch {
-      showToast("Falha ao atualizar.");
-      if (salonId) fetchAppointments(salonId); // Rollback locally on error
+      // Rollback local no erro
+      if (originalStatus) {
+        setAppointmentsQuery(prev => prev.map(app => app.id === id ? { ...app, status: originalStatus } : app));
+      }
+      showToast("Falha ao atualizar. O status foi revertido.");
     }
   };
 
