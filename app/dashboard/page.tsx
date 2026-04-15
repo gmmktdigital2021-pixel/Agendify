@@ -419,7 +419,7 @@ export default function DashboardPage() {
     else list = list.filter(a => a.status !== "cancelado"); // Default
     
     if (search.trim()) {
-      return list.filter(a => a.clients?.nome.toLowerCase().includes(search.toLowerCase()));
+      return list.filter(a => a.clients?.nome?.toLowerCase()?.includes(search.toLowerCase()) ?? false);
     }
     return list;
   }, [search, periodAppointments, statusFilter, chipsConfig]);
