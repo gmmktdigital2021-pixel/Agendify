@@ -228,12 +228,29 @@ export default function AgendaPage() {
       const endH = Math.floor(totalMin / 60).toString().padStart(2, '0');
       const endM = (totalMin % 60).toString().padStart(2, '0');
       const hora_fim = `${endH}:${endM}:00`;
+      const novaHoraInicio = `${formData.hora_inicio}:00`;
+
+      // Validação de sobreposição de horário
+      const { data: overApps, error: overErr } = await db.appointments
+        .select('id')
+        .eq('salon_id', salonId)
+        .eq('data', formData.data)
+        .neq('status', 'cancelado')
+        .lt('hora_inicio', hora_fim)
+        .gt('hora_fim', novaHoraInicio);
+
+      if (overErr) throw overErr;
+      if (overApps && overApps.length > 0) {
+        showToast("Já existe um agendamento neste horário. Escolha outro.");
+        setIsSubmitting(false);
+        return;
+      }
 
       // Chamada simplificada aproveitando toda inteligência interna do lib/supabase.ts (clientes nativos)
       await createFullAppointment(salonId, { nome: formData.nome, telefone: formData.telefone }, {
         service_id: formData.service_id,
         data: formData.data,
-        hora_inicio: formData.hora_inicio + ":00",
+        hora_inicio: novaHoraInicio,
         hora_fim: hora_fim,
         status: "confirmado" // Regra visual 2 exige confirmado
       });
