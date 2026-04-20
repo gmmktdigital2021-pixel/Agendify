@@ -25,13 +25,53 @@ import {
   Palette,
   LayoutDashboard,
   Users,
-  Star
+  Star,
+  CheckCircle2,
+  XCircle,
+  ChevronUp
 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { Toast } from "@/components/Toast";
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [nichosDropdownOpen, setNichosDropdownOpen] = useState(false);
+
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('leads').insert([{
+        name: contactName,
+        email: contactEmail,
+        whatsapp: contactPhone,
+        message: contactMessage
+      }]);
+      
+      if (error) throw error;
+      
+      setToastMsg("Mensagem enviada com sucesso! Entraremos em contato.");
+      setContactName("");
+      setContactEmail("");
+      setContactPhone("");
+      setContactMessage("");
+    } catch (err) {
+      console.error(err);
+      setToastMsg("Erro ao enviar mensagem. Tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -54,6 +94,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
       {/* 1. NAVBAR */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-white shadow-md py-3" : "bg-transparent py-5"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -472,14 +513,195 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA SECTION */}
-      <section className="py-24 bg-brand relative overflow-hidden">
+      {/* 10. PLANOS E PREÇOS */}
+      <section id="precos" className="py-24 bg-slate-50 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest mb-6">
+              Preços
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Escolha o plano ideal para você</h2>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto">Comece grátis e faça upgrade quando quiser. Sem fidelidade, cancele quando quiser.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
+            {/* Gratuito */}
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col h-full">
+              <h3 className="font-bold text-2xl text-slate-800 mb-2">Plano Gratuito</h3>
+              <p className="text-slate-500 text-sm mb-6">Para começar</p>
+              <div className="mb-8">
+                <span className="text-5xl font-extrabold text-slate-900">R$ 0</span>
+                <span className="text-slate-500 font-medium">/mês</span>
+              </div>
+              <ul className="flex flex-col gap-4 mb-8 flex-1 text-sm text-slate-700">
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Até 30 agendamentos/mês</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Até 20 clientes</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Até 5 serviços</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Link público de agendamento</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Integração WhatsApp</li>
+                <li className="flex items-center gap-3 opacity-50"><span className="text-lg">❌</span> Relatórios e gráficos</li>
+                <li className="flex items-center gap-3 opacity-50"><span className="text-lg">❌</span> Clientes ilimitados</li>
+                <li className="flex items-center gap-3 opacity-50"><span className="text-lg">❌</span> Suporte prioritário</li>
+              </ul>
+              <Link href="/login" className="w-full block text-center px-6 py-4 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-colors">
+                Começar grátis
+              </Link>
+            </div>
+
+            {/* Profissional */}
+            <div className="bg-slate-900 p-8 rounded-3xl border-2 border-brand shadow-2xl relative flex flex-col transform md:-translate-y-4 h-full md:min-h-[580px]">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand text-white px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap">Mais popular</div>
+              <h3 className="font-bold text-2xl text-white mb-2">Plano Profissional</h3>
+              <p className="text-slate-400 text-sm mb-6">Para profissionais em crescimento</p>
+              <div className="mb-8">
+                <span className="text-5xl font-extrabold text-white">R$ 47</span>
+                <span className="text-slate-400 font-medium">/mês</span>
+              </div>
+              <ul className="flex flex-col gap-4 mb-8 flex-1 text-sm text-slate-200">
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Agendamentos ilimitados</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Clientes ilimitados</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Serviços ilimitados</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Link público de agendamento</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Integração WhatsApp</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Relatórios e gráficos</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Dashboard completo</li>
+                <li className="flex items-center gap-3 opacity-50 text-slate-500"><span className="text-lg">❌</span> Suporte prioritário</li>
+              </ul>
+              <Link href="/login" className="w-full block text-center px-6 py-4 rounded-xl bg-white text-brand font-bold hover:bg-slate-100 transition-colors">
+                Assinar agora
+              </Link>
+            </div>
+
+            {/* Premium */}
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col h-full">
+              <h3 className="font-bold text-2xl text-slate-800 mb-2">Plano Premium</h3>
+              <p className="text-slate-500 text-sm mb-6">Para salões e equipes</p>
+              <div className="mb-8">
+                <span className="text-5xl font-extrabold text-slate-900">R$ 97</span>
+                <span className="text-slate-500 font-medium">/mês</span>
+              </div>
+              <ul className="flex flex-col gap-4 mb-8 flex-1 text-sm text-slate-700">
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Tudo do Profissional</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Múltiplos profissionais</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Suporte prioritário</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Personalização avançada</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Relatórios avançados</li>
+                <li className="flex items-center gap-3"><span className="text-lg">✅</span> Acesso antecipado a novidades</li>
+              </ul>
+              <Link href="/login" className="w-full block text-center px-6 py-4 rounded-xl border-2 border-brand text-brand font-bold hover:bg-brand hover:text-white transition-colors mt-auto">
+                Assinar agora
+              </Link>
+            </div>
+          </div>
+          
+          <p className="text-center text-slate-500 mt-10 font-medium text-sm">
+            🔒 Pagamento seguro <span className="mx-2">•</span> Cancele quando quiser <span className="mx-2">•</span> Sem fidelidade
+          </p>
+        </div>
+      </section>
+
+      {/* 11. FAQ */}
+      <section className="py-24 bg-white relative">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest mb-6">
+              Dúvidas Frequentes
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Perguntas frequentes</h2>
+          </div>
+          
+          <div className="flex flex-col">
+            {[
+              { q: "O plano gratuito tem limite de tempo?", a: "Não! O plano gratuito é para sempre. Você só faz upgrade se quiser mais recursos." },
+              { q: "Preciso de cartão de crédito para começar?", a: "Não. Basta criar sua conta com email e senha. Cartão só é necessário nos planos pagos." },
+              { q: "Como meus clientes fazem o agendamento?", a: "Você recebe um link público personalizado para compartilhar no Instagram, WhatsApp ou onde quiser. O cliente acessa, escolhe o serviço e o horário e pronto!" },
+              { q: "Os lembretes do WhatsApp são automáticos?", a: "Após o agendamento, o cliente é direcionado para o WhatsApp com a mensagem já preenchida. Com um clique ele confirma." },
+              { q: "Posso cancelar minha assinatura?", a: "Sim, a qualquer momento, sem multa e sem burocracia." },
+              { q: "O Agendify funciona no celular?", a: "Sim! Tanto o painel do profissional quanto a página de agendamento dos clientes são 100% responsivos." }
+            ].map((item, idx) => (
+              <div key={idx} className="border-b border-slate-200">
+                <button 
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)} 
+                  className="w-full py-6 flex items-center justify-between text-left focus:outline-none"
+                >
+                  <span className="font-bold text-slate-800 text-lg pr-8">{item.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 flex-shrink-0 ${openFaq === idx ? "rotate-180 text-brand" : ""}`} />
+                </button>
+                <div 
+                  className={`overflow-hidden transition-all duration-300 ${openFaq === idx ? "max-h-40 pb-6 opacity-100" : "max-h-0 opacity-0"}`}
+                >
+                  <p className="text-slate-500 leading-relaxed">{item.a}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 13. FORMULÁRIO DE CONTATO */}
+      <section className="py-24 bg-slate-50 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row">
+            <div className="bg-slate-900 p-10 md:w-2/5 flex flex-col justify-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
+              <div className="relative z-10">
+                <h3 className="text-3xl font-bold text-white mb-4">Fale conosco</h3>
+                <p className="text-slate-400 mb-8">Tem alguma dúvida? Nossa equipe responde em até 24h.</p>
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <MessageCircle className="w-5 h-5 text-brand" />
+                    <span>suporte@agendify.com</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-300">
+                    <Phone className="w-5 h-5 text-brand" />
+                    <span>(11) 99999-9999</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-10 md:w-3/5">
+              <form onSubmit={handleContactSubmit} className="flex flex-col gap-5">
+                <div>
+                  <label className="text-sm font-bold text-slate-700 block mb-2">Nome</label>
+                  <input type="text" required value={contactName} onChange={e => setContactName(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-slate-800" placeholder="Seu nome" />
+                </div>
+                <div className="flex gap-4 flex-col sm:flex-row">
+                  <div className="flex-1">
+                    <label className="text-sm font-bold text-slate-700 block mb-2">Email</label>
+                    <input type="email" required value={contactEmail} onChange={e => setContactEmail(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-slate-800" placeholder="seu@email.com" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-sm font-bold text-slate-700 block mb-2">WhatsApp</label>
+                    <input type="text" required value={contactPhone} onChange={e => setContactPhone(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-slate-800" placeholder="(11) 90000-0000" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-slate-700 block mb-2">Mensagem</label>
+                  <textarea required value={contactMessage} onChange={e => setContactMessage(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all text-slate-800 h-32 resize-none" placeholder="Como podemos ajudar?"></textarea>
+                </div>
+                <button type="submit" disabled={isSubmitting} className="bg-brand text-white font-bold py-3.5 rounded-xl hover:bg-brand/90 transition-colors shadow-lg shadow-brand/20 disabled:opacity-50 mt-2">
+                  {isSubmitting ? "Enviando..." : "Enviar mensagem"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 12. CTA FINAL */}
+      <section className="py-24 bg-gradient-to-r from-purple-700 to-brand relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">Pronto para lotar sua agenda?</h2>
-          <p className="text-brand-100 text-lg md:text-xl mb-10 text-white/80 max-w-2xl mx-auto">Junte-se a centenas de profissionais que já modernizaram a gestão de seus negócios e ganharam mais tempo livre.</p>
-          <Link href="/login" className="bg-white text-brand px-10 py-5 rounded-full font-extrabold text-lg md:text-xl shadow-2xl hover:scale-105 transition-transform inline-block">
-            Criar minha conta grátis
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">Pronto para largar o telefone?</h2>
+          <p className="text-brand-100 text-lg md:text-xl mb-10 text-white/90 max-w-2xl mx-auto">Junte-se a centenas de profissionais que automatizaram sua agenda com o Agendify.</p>
+          <Link href="/login" className="bg-white text-brand px-10 py-5 rounded-full font-extrabold text-lg md:text-xl shadow-2xl hover:scale-105 transition-transform inline-block mb-6">
+            Criar minha agenda grátis
           </Link>
+          <p className="text-white/80 font-medium text-sm flex flex-wrap justify-center gap-4">
+            <span>✓ Grátis para sempre</span>
+            <span>✓ Sem cartão</span>
+            <span>✓ Configurado em 2 minutos</span>
+          </p>
         </div>
       </section>
 
