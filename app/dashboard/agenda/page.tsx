@@ -57,6 +57,24 @@ export default function AgendaPage() {
     data: "",
     hora_inicio: ""
   });
+  
+  const [viewingApp, setViewingApp] = useState<AppointmentWithRelations | null>(null);
+
+  const updateAppointmentStatus = async (id: string, novoStatus: AppointmentStatus) => {
+    try {
+      const { error } = await supabase.from('appointments').update({ status: novoStatus }).eq('id', id);
+      if (error) throw error;
+      setViewingApp(prev => prev && prev.id === id ? { ...prev, status: novoStatus } : prev);
+      setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: novoStatus } : a));
+      setToastMsg(`Status atualizado para ${novoStatus}`);
+      setViewingApp(null);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+         console.error(error.message);
+      }
+      setToastMsg("Erro ao atualizar status.");
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -382,6 +400,10 @@ export default function AgendaPage() {
                         return (
                           <div
                             key={app.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewingApp(app);
+                            }}
                             className={`absolute left-1 right-2 pointer-events-auto rounded-lg bg-white overflow-hidden shadow-sm border border-slate-200 cursor-pointer 
                               transition-transform hover:scale-[1.02] hover:shadow-md z-10 flex
                               ${isCanceled ? 'opacity-40 grayscale' : ''}`}
@@ -478,6 +500,61 @@ export default function AgendaPage() {
                </Button>
                <Button onClick={handleCreateAppointment} disabled={isSubmitting} variant="primary" className="px-6 font-bold shadow-md">
                  {isSubmitting ? "Salvando..." : "Confirmar"}
+               </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-bold text-slate-800 text-lg">Detalhes do Agendamento</h3>
+              <button onClick={() => setViewingApp(null)} className="text-slate-400 hover:text-slate-700 bg-slate-200/50 hover:bg-slate-200 rounded-full p-1 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Cliente</p>
+                <p className="text-base font-bold text-slate-800">{viewingApp.clients?.nome || "Sem Nome"}</p>
+                <p className="text-sm flex items-center gap-1.5 text-slate-500 font-medium mt-0.5">{viewingApp.clients?.telefone || "Sem Telefone"}</p>
+              </div>
+              
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Serviço</p>
+                <p className="text-sm font-medium text-slate-700">{viewingApp.services?.nome || "Desconhecido"}</p>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Horário</p>
+                  <p className="text-sm font-medium text-slate-700">{viewingApp.hora_inicio.substring(0, 5)}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status atual</p>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm inline-block ${statusColors[viewingApp.status]}`}>
+                    {viewingApp.status.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-5 border-t border-slate-100 mt-2">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Editar Status</p>
+                <div className="grid grid-cols-2 gap-2">
+                   <Button onClick={() => updateAppointmentStatus(viewingApp.id, "confirmado")} variant="secondary" className="text-xs py-2 h-auto text-emerald-600 border-emerald-200 hover:bg-emerald-50">Confirmar</Button>
+                   <Button onClick={() => updateAppointmentStatus(viewingApp.id, "pendente")} variant="secondary" className="text-xs py-2 h-auto text-amber-600 border-amber-200 hover:bg-amber-50">Pendente</Button>
+                   <Button onClick={() => updateAppointmentStatus(viewingApp.id, "concluido")} variant="secondary" className="text-xs py-2 h-auto text-brand border-brand/30 hover:bg-brand/5">Concluir</Button>
+                   <Button onClick={() => updateAppointmentStatus(viewingApp.id, "cancelado")} variant="secondary" className="text-xs py-2 h-auto text-red-600 border-red-200 hover:bg-red-50">Cancelar</Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+               <Button variant="ghost" onClick={() => setViewingApp(null)} className="px-6 text-slate-500 font-bold hover:bg-slate-200 rounded-lg">
+                 Fechar
                </Button>
             </div>
           </div>
