@@ -84,8 +84,8 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#7C3AED] flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-5xl flex rounded-[2.5rem] overflow-hidden shadow-2xl shadow-purple-900/40 min-h-[600px]">
+    <div className="min-h-screen bg-[#7C3AED] flex font-sans">
+      <div className="w-full h-screen flex">
 
         {/* LADO ESQUERDO — Formulário (branco com canto arredondado) */}
         <div className="w-full lg:w-[55%] bg-white flex flex-col justify-center px-10 py-12 relative rounded-[2.5rem] lg:rounded-r-none z-10 shadow-xl">
@@ -284,3 +284,4 @@ export default function LoginPage() {
     </React.Suspense>
   );
 }
+
