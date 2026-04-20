@@ -493,9 +493,9 @@ export default function LandingPage() {
              <p className="text-lg text-slate-500">Escale seu negócio com ferramentas que cabem no seu bolso.</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
              {/* Básico */}
-             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300">
+             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm h-full hover:scale-105 hover:-translate-y-3 hover:shadow-2xl transition-all duration-300 cursor-pointer">
                <h3 className="font-bold text-2xl text-slate-800 mb-2">Iniciante</h3>
                <p className="text-slate-500 text-sm mb-6">Comece sua digitalização</p>
                <div className="mb-6">
@@ -517,7 +517,7 @@ export default function LandingPage() {
              </div>
 
              {/* Profissional (Destaque) */}
-             <div className="bg-white p-8 rounded-3xl border-2 border-brand shadow-2xl relative transform lg:-translate-y-4">
+             <div className="bg-white p-8 rounded-3xl border-2 border-brand shadow-2xl relative transform lg:-translate-y-4 h-full hover:scale-105 hover:-translate-y-3 hover:shadow-2xl transition-all duration-300 cursor-pointer">
                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest">
                  Mais Popular
                </div>
@@ -542,7 +542,7 @@ export default function LandingPage() {
              </div>
 
              {/* Premium */}
-             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300">
+             <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm h-full hover:scale-105 hover:-translate-y-3 hover:shadow-2xl transition-all duration-300 cursor-pointer">
                <h3 className="font-bold text-2xl text-slate-800 mb-2">Premium</h3>
                <p className="text-slate-500 text-sm mb-6">Para times e salões completos</p>
                <div className="mb-6">
