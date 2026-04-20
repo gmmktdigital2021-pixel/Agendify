@@ -184,16 +184,16 @@ export default function LandingPage() {
                 Software de Agendamento Nº1 para Beleza
               </div>
               
-              <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-tight mb-6">
+              <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-tight mb-6 animate-fadeInLeft">
                 Sua agenda no <br className="hidden lg:block"/>
                 <span className="text-brand">piloto automático.</span>
               </h1>
               
-              <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-xl">
+              <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-xl animate-fadeInLeft delay-200">
                 Receba marcações 24h por dia, elimine as faltas com lembretes automáticos e foque no que você faz de melhor.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-8">
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-8 animate-fadeInLeft delay-300">
                 <Link href="/login" className="bg-brand text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-brand/20 hover:bg-brand/90 transition-all hover:-translate-y-1 text-center">
                   Começar grátis
                 </Link>
@@ -215,7 +215,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right Col - Mockup */}
-            <div className="relative w-full max-w-md mx-auto lg:max-w-none">
+            <div className="relative w-full max-w-md mx-auto lg:max-w-none animate-fadeInRight animate-float">
               <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-transform hover:scale-[1.02] duration-500 relative z-10 lg:ml-10">
                 <div className="bg-slate-100 px-4 py-3 flex gap-2 items-center border-b border-slate-200">
                   <div className="w-3 h-3 rounded-full bg-red-400"></div>
@@ -256,7 +256,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="absolute -left-6 lg:left-0 top-20 bg-white px-4 py-3 rounded-2xl shadow-xl border border-slate-100 z-20 flex items-center gap-3 animate-bounce shadow-brand/10" style={{animationDuration: '3s'}}>
+              <div className="absolute -left-6 lg:left-0 top-20 bg-white px-4 py-3 rounded-2xl shadow-xl border border-slate-100 z-20 flex items-center gap-3 animate-pulse-soft shadow-brand/10" style={{animationDuration: '3s'}}>
                  <div className="text-xl">✅</div>
                  <div>
                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nova reserva</p>
@@ -264,7 +264,7 @@ export default function LandingPage() {
                  </div>
               </div>
 
-              <div className="absolute -right-8 bottom-12 bg-white px-4 py-3 rounded-2xl shadow-xl border border-slate-100 z-20 flex items-center gap-3 animate-bounce shadow-blue-500/10" style={{animationDuration: '3.5s', animationDelay: '1s'}}>
+              <div className="absolute -right-8 bottom-12 bg-white px-4 py-3 rounded-2xl shadow-xl border border-slate-100 z-20 flex items-center gap-3 animate-pulse-soft shadow-blue-500/10" style={{animationDuration: '3.5s', animationDelay: '1s'}}>
                  <div className="w-10 h-10 bg-brand/10 rounded-full flex items-center justify-center text-brand font-bold text-lg">⏱</div>
                  <div>
                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Economia real</p>
@@ -303,7 +303,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {nichos.map(nicho => (
               <Link key={nicho.id} href={nicho.link} className="group outline-none">
-                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 h-full flex flex-col">
+                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                   <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
                     {React.cloneElement(nicho.icon, { className: "w-6 h-6 transition-colors duration-300 text-brand group-hover:text-white" })}
                   </div>
@@ -398,7 +398,7 @@ export default function LandingPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-lg transition-all duration-300 group">
               <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
                 <LinkIcon className="w-6 h-6" />
               </div>
@@ -406,7 +406,7 @@ export default function LandingPage() {
               <p className="text-slate-500 text-sm leading-relaxed">Link público personalizado. Clientes agendam a qualquer hora sem precisar te chamar.</p>
             </div>
             
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-lg transition-all duration-300 group">
               <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
                 <MessageCircle className="w-6 h-6" />
               </div>
@@ -414,7 +414,7 @@ export default function LandingPage() {
               <p className="text-slate-500 text-sm leading-relaxed">Confirmações e lembretes automáticos enviados direto no WhatsApp do cliente.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-lg transition-all duration-300 group">
               <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
                 <BarChart3 className="w-6 h-6" />
               </div>
@@ -422,7 +422,7 @@ export default function LandingPage() {
               <p className="text-slate-500 text-sm leading-relaxed">Acompanhe faturamento, atendimentos e horários livres em tempo real.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-lg transition-all duration-300 group">
               <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
                 <Palette className="w-6 h-6" />
               </div>
@@ -430,7 +430,7 @@ export default function LandingPage() {
               <p className="text-slate-500 text-sm leading-relaxed">Customize as cores e foto do seu perfil para combinar com sua marca.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-lg transition-all duration-300 group">
               <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
                 <LayoutDashboard className="w-6 h-6" />
               </div>
@@ -438,7 +438,7 @@ export default function LandingPage() {
               <p className="text-slate-500 text-sm leading-relaxed">Visualize toda sua semana de um jeito simples e organize seus horários.</p>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:scale-105 hover:shadow-lg transition-all duration-300 group">
               <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
                 <Users className="w-6 h-6" />
               </div>
@@ -549,7 +549,7 @@ export default function LandingPage() {
             </div>
 
             {/* Profissional */}
-            <div className="bg-slate-900 p-8 rounded-3xl border-2 border-brand shadow-2xl relative flex flex-col transform md:-translate-y-4 h-full md:min-h-[580px]">
+            <div className="bg-slate-900 p-8 rounded-3xl border-2 border-brand shadow-2xl relative flex flex-col transform md:-translate-y-4 hover:-translate-y-6 transition-all duration-300 h-full md:min-h-[580px]">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand text-white px-4 py-1 rounded-full text-xs font-bold tracking-widest uppercase whitespace-nowrap">Mais popular</div>
               <h3 className="font-bold text-2xl text-white mb-2">Plano Profissional</h3>
               <p className="text-slate-400 text-sm mb-6">Para profissionais em crescimento</p>
