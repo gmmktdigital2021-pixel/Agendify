@@ -7,6 +7,7 @@ import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Toast } from "@/components/Toast";
 import { supabase } from "@/lib/supabase";
+import Image from "next/image";
 
 const antecedenciaMap: Record<string, number> = {
   "30 min": 30, "1 hora": 60, "2 horas": 120, "3 horas": 180,
@@ -251,7 +252,7 @@ export default function ConfiguracoesPage() {
               <div className="flex-shrink-0 flex flex-col items-center">
                 <label className="block text-sm font-bold text-slate-700 mb-3 self-start">Foto de Perfil</label>
                 <label className="relative flex items-center justify-center w-24 h-24 rounded-full bg-slate-50 border-2 border-dashed border-slate-300 cursor-pointer overflow-hidden group hover:border-brand transition-colors">
-                  {formData.foto_perfil ? <img src={formData.foto_perfil} alt="Perfil" className="w-full h-full object-cover group-hover:brightness-75" /> : <span className="text-slate-400 font-medium text-xs">Sem foto</span>}
+                  {formData.foto_perfil ? <Image src={formData.foto_perfil} alt="Perfil" fill className="object-cover group-hover:brightness-75" sizes="96px" /> : <span className="text-slate-400 font-medium text-xs">Sem foto</span>}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"><Camera className="w-6 h-6 text-white" /></div>
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadImage(e, 'perfil')} />
                 </label>
@@ -259,7 +260,7 @@ export default function ConfiguracoesPage() {
               <div className="flex-1 w-full">
                 <label className="block text-sm font-bold text-slate-700 mb-3">Foto de Capa</label>
                 <label className="relative flex w-full h-[140px] rounded-xl bg-slate-50 border-2 border-dashed border-slate-300 cursor-pointer overflow-hidden group hover:border-brand transition-colors">
-                  {formData.foto_capa ? <img src={formData.foto_capa} alt="Capa" className="w-full h-full object-cover group-hover:brightness-75" /> : <div className="w-full h-full flex items-center justify-center"><span className="text-slate-400 text-sm">Adicionar imagem de capa</span></div>}
+                  {formData.foto_capa ? <Image src={formData.foto_capa} alt="Capa" fill className="object-cover group-hover:brightness-75" sizes="(max-width: 768px) 100vw, 50vw" /> : <div className="w-full h-full flex items-center justify-center"><span className="text-slate-400 text-sm">Adicionar imagem de capa</span></div>}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"><Camera className="w-8 h-8 text-white" /></div>
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadImage(e, 'capa')} />
                 </label>

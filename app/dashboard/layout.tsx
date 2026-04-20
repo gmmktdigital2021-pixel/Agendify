@@ -15,6 +15,7 @@ import {
   X
 } from "lucide-react";
 import { supabase, db } from "@/lib/supabase";
+import Image from "next/image";
 
 export default function DashboardLayout({
   children,
@@ -202,7 +203,7 @@ export default function DashboardLayout({
             <div className="flex items-center relative w-[36px] group-hover:w-[216px] group-hover:px-3 mx-auto h-[36px] transition-[width,padding] duration-250 ease-in-out group/footer cursor-pointer">
               <div className="w-[36px] h-[36px] flex items-center justify-center shrink-0">
                 {salonFotoPerfil ? (
-                  <img src={salonFotoPerfil} alt="Perfil" className="w-[36px] h-[36px] rounded-full object-cover bg-white/20" />
+                  <Image src={salonFotoPerfil} alt="Perfil" width={36} height={36} className="w-[36px] h-[36px] rounded-full object-cover bg-white/20" />
                 ) : (
                   <div className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
                     {userInitials}
@@ -272,7 +273,7 @@ export default function DashboardLayout({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 overflow-hidden">
                   {salonFotoPerfil ? (
-                    <img src={salonFotoPerfil} alt="Perfil" className="w-10 h-10 rounded-full object-cover shrink-0 bg-white/20 border border-white/10" />
+                    <Image src={salonFotoPerfil} alt="Perfil" width={40} height={40} className="w-10 h-10 rounded-full object-cover shrink-0 bg-white/20 border border-white/10" />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm shrink-0 uppercase">
                       {userInitials}
