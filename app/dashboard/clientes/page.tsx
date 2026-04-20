@@ -303,7 +303,7 @@ export default function ClientesPage() {
                     <Button 
                         variant="secondary" 
                         onClick={() => openModal(client)}
-                        className="text-slate-600 border-slate-300 px-3"
+                        className="text-blue-500 border-blue-200 hover:bg-blue-50 px-3"
                         title="Editar"
                     >
                         <Pencil className="w-4 h-4" />
@@ -311,7 +311,7 @@ export default function ClientesPage() {
                     <Button 
                         variant="ghost" 
                         onClick={() => setClientToDelete(client)}
-                        className="text-red-500 bg-red-50 hover:bg-red-100 px-3"
+                        className="text-red-500 border-red-200 bg-red-50 hover:bg-red-100 px-3"
                         title="Excluir Cliente"
                     >
                         <Trash2 className="w-4 h-4" />
