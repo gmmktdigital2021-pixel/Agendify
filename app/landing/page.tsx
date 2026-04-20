@@ -249,7 +249,7 @@ export default function LandingPage() {
             {/* Sobrancelhas */}
             <Link href="/nichos/sobrancelhas" className="group rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 hover:shadow-xl transition-all duration-300">
                <div className="h-48 overflow-hidden relative">
-                 <img src="https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?w=400&q=80" alt="Sobrancelhas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                 <img src="https://images.unsplash.com/photo-1591346088447-77c5726d4d23?w=400&q=80" alt="Sobrancelhas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                </div>
                <div className="p-6">
                  <h3 className="font-bold text-xl text-slate-800 mb-2">Sobrancelhas</h3>
@@ -260,7 +260,7 @@ export default function LandingPage() {
             {/* Cílios */}
             <Link href="/nichos/cilios" className="group rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 hover:shadow-xl transition-all duration-300">
                <div className="h-48 overflow-hidden relative">
-                 <img src="https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=400&q=80" alt="Cílios" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                 <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80" alt="Cílios" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                </div>
                <div className="p-6">
                  <h3 className="font-bold text-xl text-slate-800 mb-2">Cílios</h3>
@@ -700,3 +700,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
