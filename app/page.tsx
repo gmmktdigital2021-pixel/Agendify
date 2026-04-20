@@ -23,7 +23,7 @@ export default function LandingPage() {
     try {
       // Tenta salvar no Supabase (se as chaves reais estiverem configuradas)
       const { error } = await supabase.from("leads").insert([{ name, whatsapp }]);
-      
+
       // Se der erro por falta de configuração real, ignoramos no ambiente mockado 
       // Mas a intenção e a lógica já ficam prontas para uso real
       if (error && error.message.includes("URL missing")) {
@@ -32,7 +32,7 @@ export default function LandingPage() {
 
       // Exibe sucesso
       setShowToast(true);
-      
+
       // Redireciona após 2 segundos
       setTimeout(() => {
         router.push("/login");
@@ -164,16 +164,16 @@ export default function LandingPage() {
           <div className="max-w-xl mx-auto px-4">
             <h2 className="text-3xl font-extrabold text-slate-900 mb-4">Comece agora com o Agendify</h2>
             <p className="text-lg text-slate-600 mb-10">Grátis, sem cartão de crédito</p>
-            
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-sm mx-auto text-left">
-              <Input 
-                placeholder="Seu nome" 
+              <Input
+                placeholder="Seu nome"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-              <Input 
-                placeholder="Seu WhatsApp" 
+              <Input
+                placeholder="Seu WhatsApp"
                 type="tel"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
@@ -201,9 +201,9 @@ export default function LandingPage() {
       </footer>
 
       {showToast && (
-        <Toast 
-          message="Lead cadastrado com sucesso! Preparando redirecionamento..." 
-          onClose={() => setShowToast(false)} 
+        <Toast
+          message="Lead cadastrado com sucesso! Preparando redirecionamento..."
+          onClose={() => setShowToast(false)}
         />
       )}
     </div>
