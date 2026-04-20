@@ -23,8 +23,7 @@ import {
 import { supabase, db } from "@/lib/supabase";
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts';
 
 type AppointmentStatus = "confirmado" | "pendente" | "cancelado" | "concluido";
@@ -209,8 +208,10 @@ export default function DashboardPage() {
 
       if (error) throw error;
       setAppointmentsQuery((data as unknown) as AppointmentWithRelations[]);
-    } catch (err) {
-      console.error("Falha ao buscar agenda:", err);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Falha ao buscar agenda:", error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -438,7 +439,10 @@ export default function DashboardPage() {
       const { error } = await supabase.from('appointments').update({ status: newStatus }).eq('id', id);
       if (error) throw error;
       showToast(toastMessage);
-    } catch {
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Erro na atualização:", error.message);
+      }
       // Rollback local no erro
       if (originalStatus) {
         setAppointmentsQuery(prev => prev.map(app => app.id === id ? { ...app, status: originalStatus } : app));

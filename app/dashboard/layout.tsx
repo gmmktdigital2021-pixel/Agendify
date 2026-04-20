@@ -25,7 +25,6 @@ export default function DashboardLayout({
   const router = useRouter();
 
   // Mocked Auth Initials until proper profile mapping
-  const [salonName, setSalonName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");
   const [salonFotoPerfil, setSalonFotoPerfil] = useState("");
@@ -49,8 +48,10 @@ export default function DashboardLayout({
         .eq('status', 'pendente');
         
       setPendingCount(count || 0);
-    } catch (e) {
-      console.error(e);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      }
     }
   }, []);
 
@@ -77,7 +78,6 @@ export default function DashboardLayout({
       }
 
       if (salon) {
-        setSalonName(salon.nome);
         setSalonId(salon.id);
         if (salon.foto_perfil) setSalonFotoPerfil(salon.foto_perfil);
         fetchPending(salon.id);

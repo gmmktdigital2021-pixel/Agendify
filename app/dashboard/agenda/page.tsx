@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, RefreshCw, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Toast } from "@/components/Toast";
@@ -88,8 +88,10 @@ export default function AgendaPage() {
           .eq('salon_id', salonData.id)
         console.log('Services:', servicesData, 'Error:', servicesError)
         if (servicesData) setServices(servicesData)
-      } catch (err) {
-        console.error('Erro ao carregar dados:', err)
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Erro ao carregar dados:', error.message)
+        }
       }
     }
     loadData()
@@ -109,8 +111,10 @@ export default function AgendaPage() {
 
       if (error) throw error;
       setAppointments((data as unknown) as AppointmentWithRelations[]);
-    } catch (err) {
-      console.error("Falha ao buscar agenda semanal:", err);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Falha ao buscar agenda semanal:", error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -257,8 +261,10 @@ export default function AgendaPage() {
 
       showToast("✅ Agendamento confirmado!");
       setModalOpen(false);
-    } catch (e: any) {
-      console.error(e);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      }
       showToast("Erro ao criar agendamento.");
     } finally {
       setIsSubmitting(false);

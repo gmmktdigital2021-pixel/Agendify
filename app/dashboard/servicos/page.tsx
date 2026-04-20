@@ -18,7 +18,6 @@ interface Service {
 
 export default function ServicosPage() {
   const [services, setServices] = useState<Service[]>([]);
-  const [salonId, setSalonId] = useState<string | null>(null);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -42,7 +41,6 @@ export default function ServicosPage() {
         .eq('user_id', user.id)
         .single()
       if (!salon) return
-      setSalonId(salon.id)
       const { data } = await supabase
         .from('services')
         .select('id, nome, duracao_minutos, preco')
@@ -128,8 +126,10 @@ export default function ServicosPage() {
       setPreco('')
       setEditingService(null)
       setModalOpen(false)
-    } catch (err) {
-      console.error('Erro ao salvar serviço:', err)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Erro ao salvar serviço:', error.message)
+      }
     } finally {
       setLoading(false)
     }
