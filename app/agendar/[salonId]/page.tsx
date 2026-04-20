@@ -5,7 +5,11 @@ import { CalendarCheck, ChevronLeft, Check, Clock, CalendarDays, User, Phone, Ch
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Toast } from "@/components/Toast";
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
+import { DayPicker } from "react-day-picker";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import "react-day-picker/style.css";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -311,32 +315,47 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
             <div className="flex-1 p-6 animate-in slide-in-from-right flex flex-col">
               <h2 className="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-brand" /> Quando?</h2>
 
-              <div className="mb-6">
-                <input
-                  type="date"
-                  min={minDateStr}
-                  value={selectedDate}
-                  onChange={(e) => {
-                    const dStr = e.target.value;
-                    if (!dStr) { setSelectedDate(""); return; }
-
-                    const dateParts = dStr.split('-');
-                    const obj = new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2]));
-
-                    const daysNames = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-                    const selectedDayName = daysNames[obj.getDay()];
-
-                    if (salon.dias_ativos && !salon.dias_ativos.includes(selectedDayName)) {
-                      setToastMsg("Lamentamos, o estabelecimento não atende neste dia da semana. Selecione outro.");
-                      setSelectedDate("");
-                      return;
-                    }
-                    setSelectedDate(dStr);
-                    setSelectedTime("");
-                  }}
-                  className="w-full px-4 py-3 border-2 border-brand/20 bg-brand/5 text-brand font-bold rounded-xl outline-none"
-                />
-                <p className="text-xs text-slate-400 mt-2 text-center">Dias ativos: {salon.dias_ativos?.join(', ')}</p>
+              <div className="mb-6 flex flex-col items-center">
+                <style>{`
+                  .rdp-root {
+                    --rdp-accent-color: var(--brand, #ec4899); 
+                    --rdp-background-color: rgba(236, 72, 153, 0.1);
+                    margin: 0;
+                  }
+                  .rdp-day_selected, .rdp-day_selected:focus-visible, .rdp-day_selected:hover {
+                    background-color: var(--rdp-accent-color);
+                    color: white;
+                    font-weight: bold;
+                  }
+                  .rdp-day_disabled {
+                    opacity: 0.3;
+                    pointer-events: none;
+                  }
+                `}</style>
+                <div className="w-full border-2 border-brand/20 bg-brand/5 rounded-xl p-4 flex justify-center">
+                  <DayPicker
+                    mode="single"
+                    selected={selectedDate ? new Date(selectedDate + "T00:00:00") : undefined}
+                    onSelect={(date) => {
+                      if (!date) {
+                        setSelectedDate("");
+                        return;
+                      }
+                      setSelectedDate(format(date, "yyyy-MM-dd"));
+                      setSelectedTime("");
+                    }}
+                    disabled={[
+                      { before: new Date(new Date().setHours(0, 0, 0, 0)) },
+                      (date) => {
+                        const daysNames = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+                        const selectedDayName = daysNames[date.getDay()];
+                        return !!salon.dias_ativos && !salon.dias_ativos.includes(selectedDayName);
+                      }
+                    ]}
+                    locale={ptBR}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-3 text-center">Dias ativos: {salon.dias_ativos?.join(', ')}</p>
               </div>
 
               {selectedDate && (
