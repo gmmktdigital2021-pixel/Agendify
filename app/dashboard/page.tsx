@@ -277,8 +277,8 @@ export default function DashboardPage() {
   const canceladosPeriodo = periodAppointments.filter(a => a.status === "cancelado").length;
   const pendentesPeriodo = periodAppointments.filter(a => a.status === "pendente").length;
 
-  const livresPendentesHoje = todayAppointments.filter(a => a.status === "pendente").length;
-  const livresCanceladosHoje = todayAppointments.filter(a => a.status === "cancelado").length;
+  const pendentesHoje = todayAppointments.filter(a => a.status === "pendente").length;
+  const confirmadosHoje = todayAppointments.filter(a => a.status === "confirmado").length;
 
   // --- DADOS PARA GRÁFICOS ---
   const diffDays = useMemo(() => {
@@ -616,16 +616,16 @@ export default function DashboardPage() {
         
         <Card className="p-3 md:p-5 relative overflow-hidden flex flex-col justify-center">
             <div className="flex items-center gap-1.5 md:gap-2 mb-1">
-              <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500 shrink-0" />
-              <div className="text-[10px] md:text-sm font-bold text-slate-700 whitespace-nowrap shrink-0 overflow-hidden">Horários Livres (Hoje)</div>
+              <Clock className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand shrink-0" />
+              <div className="text-[10px] md:text-sm font-bold text-slate-700 whitespace-nowrap shrink-0 overflow-hidden">Agendamentos Hoje</div>
             </div>
             {isLoading ? (
                <div className="h-4 w-16 bg-slate-200 rounded animate-pulse mt-1"></div>
             ) : (
               <p className="text-[10px] md:text-xs text-slate-500 leading-tight">
-                <span className="text-amber-500 font-bold">{livresPendentesHoje}</span> pend.<br className="md:hidden" />
+                <span className="text-amber-500 font-bold">{pendentesHoje}</span> pend.<br className="md:hidden" />
                 <span className="hidden md:inline"> • </span>
-                <span className="text-red-400 font-bold md:ml-1 mt-0.5 md:mt-0">{livresCanceladosHoje}</span> canc.
+                <span className="text-green-500 font-bold md:ml-1 mt-0.5 md:mt-0">{confirmadosHoje}</span> conf.
               </p>
             )}
         </Card>
