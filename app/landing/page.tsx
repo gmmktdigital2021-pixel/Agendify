@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [nichosOpen, setNichosOpen] = useState(false);
-  const [faqOpen, setFaqOpen] = useState(null);
+  const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [formData, setFormData] = useState({ nome: "", whatsapp: "", email: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
@@ -32,7 +32,7 @@ export default function LandingPage() {
     { q: "O Agendify funciona no celular?", a: "Sim! Tanto o painel do profissional quanto a página de agendamento são 100% responsivos." },
   ];
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -388,3 +388,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+
