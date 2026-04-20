@@ -233,7 +233,7 @@ export default function ClientesPage() {
           />
           <div className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="ghost" onClick={closeModal}>Cancelar</Button>
-            <Button type="submit" variant="primary">Restaurar Banco Central</Button>
+            <Button type="submit" variant="primary">Salvar Alterações</Button>
           </div>
         </form>
       </Modal>
