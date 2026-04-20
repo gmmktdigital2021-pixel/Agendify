@@ -505,9 +505,9 @@ export default function LandingPage() {
                  Testar Grátis
                </Link>
                <ul className="flex flex-col gap-4 text-slate-600">
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Link de agenda grátis</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Até 20 agendamentos/mês</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Perfil básico</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Agendamentos:</span> Até 20/mês</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Clientes:</span> Até 20</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Serviços:</span> Até 5</li>
                </ul>
              </div>
 
@@ -525,10 +525,9 @@ export default function LandingPage() {
                  Assinar Profissional
                </Link>
                <ul className="flex flex-col gap-4 text-slate-700">
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-bold">Tudo do Gratuito</span></li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Agendamentos Ilimitados</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Lembretes por WhatsApp Automáticos</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Relatórios do negócio</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-medium text-slate-800">Agendamentos:</span> Até 40/mês</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-medium text-slate-800">Clientes:</span> Até 40</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-medium text-slate-800">Serviços:</span> Até 10</li>
                </ul>
              </div>
 
@@ -543,9 +542,9 @@ export default function LandingPage() {
                  Assinar Premium
                </Link>
                <ul className="flex flex-col gap-4 text-slate-600">
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-bold">Tudo do Pro</span></li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Até 5 profissionais na conta</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Agenda separada por funcionário</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Agendamentos:</span> Ilimitado</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Clientes:</span> Ilimitado</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Serviços:</span> Ilimitado</li>
                </ul>
              </div>
           </div>
