@@ -162,22 +162,6 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
       // Sucesso!
       setSuccess(true);
 
-      // WhatsApp Forwarding
-      const clName = clientData.nome.split(' ')[0];
-      const dtParts = selectedDate.split('-');
-      const strDt = `${dtParts[2]}/${dtParts[1]}/${dtParts[0]}`;
-
-      let msg = salon?.mensagem_padrao || `Olá! Sou {nome}, agendei {servico} para {dia} às {hora} pelo Agendify.`;
-      msg = msg.replace('{nome}', clName)
-        .replace('{dia}', strDt)
-        .replace('{hora}', selectedTime)
-        .replace('{servico}', selectedService.nome);
-
-      const cleanPhone = salon?.telefone?.replace(/\D/g, '');
-      if (cleanPhone) {
-        setTimeout(() => window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank'), 1500);
-      }
-
     } catch (err) {
       console.error('Erro inesperado:', err);
       setToastMsg('Falha de conexão. Tente novamente.');
@@ -241,13 +225,34 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
                 <CheckCircle2 className="w-10 h-10 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">Agendamento Solicitado!</h2>
-              <p className="text-slate-500 mb-8">Nós enviamos sua solicitação. Você será redirecionado para o nosso WhatsApp em poucos segundos.</p>
+              <p className="text-slate-500 mb-8">Sua solicitação foi enviada para o salão. Clique no botão abaixo para concluir o agendamento pelo WhatsApp.</p>
 
-              <div className="p-4 bg-slate-50 rounded-xl w-full flex flex-col text-left gap-2 shadow-inner border border-slate-100">
+              <div className="p-4 bg-slate-50 rounded-xl w-full flex flex-col text-left gap-2 shadow-inner border border-slate-100 mb-6">
                 <p className="text-sm"><b>Serviço:</b> {selectedService?.nome}</p>
                 <p className="text-sm"><b>Data:</b> {selectedDate.split('-').reverse().join('/')}</p>
                 <p className="text-sm"><b>Hora:</b> {selectedTime}</p>
               </div>
+
+              {(() => {
+                const clName = clientData.nome.split(' ')[0];
+                const dtParts = selectedDate.split('-');
+                const strDt = `${dtParts[2]}/${dtParts[1]}/${dtParts[0]}`;
+                let msg = salon?.mensagem_padrao || `Olá! Sou {nome}, agendei {servico} para {dia} às {hora} pelo Agendify.`;
+                msg = msg.replace('{nome}', clName)
+                    .replace('{dia}', strDt)
+                    .replace('{hora}', selectedTime)
+                    .replace('{servico}', selectedService?.nome || '');
+                const cleanPhone = salon?.telefone?.replace(/\D/g, '');
+                
+                return cleanPhone ? (
+                  <Button 
+                    onClick={() => window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank')} 
+                    className="w-full bg-[#25D366] hover:bg-green-600 font-bold text-lg py-3.5"
+                  >
+                    Enviar mensagem no WhatsApp 💬
+                  </Button>
+                ) : null;
+              })()}
             </div>
           )}
 
