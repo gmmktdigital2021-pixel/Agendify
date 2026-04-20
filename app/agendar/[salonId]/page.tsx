@@ -445,7 +445,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
                     <div className="font-bold text-slate-800">{selectedService?.nome}</div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <div className="text-slate-500 text-sm">Valoração</div>
+                    <div className="text-slate-500 text-sm">Valor do Serviço</div>
                     <div className="font-bold text-green-600">R$ {selectedService?.preco?.toFixed(2)}</div>
                   </div>
                   <div className="flex justify-between items-center">
