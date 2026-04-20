@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
@@ -134,6 +134,21 @@ export default function DashboardPage() {
   const [customEnd, setCustomEnd] = useState("");
   const [appliedCustomStart, setAppliedCustomStart] = useState("");
   const [appliedCustomEnd, setAppliedCustomEnd] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
   
   const [statusFilter, setStatusFilter] = useState('todos');
   const [isListViewAnimating, setIsListViewAnimating] = useState(false);
@@ -505,7 +520,7 @@ export default function DashboardPage() {
           Visão <span className="font-medium text-slate-600">Geral</span>
         </h2>
         
-        <div className="relative z-30">
+        <div className="relative z-30" ref={dropdownRef}>
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="flex items-center gap-2 bg-white px-4 py-2 border border-slate-200 rounded-[10px] text-sm font-medium shadow-sm hover:border-brand transition-colors"
