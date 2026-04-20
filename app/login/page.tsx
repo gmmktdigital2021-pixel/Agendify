@@ -101,7 +101,7 @@ function LoginContent() {
               <h1 className="text-3xl font-extrabold text-slate-900 mb-1">
                 {isCadastro ? "Crie sua conta" : "Bem-vindo de volta!"}
               </h1>
-              <p className="text-slate-400 text-sm mb-8">
+              <p className="text-slate-600 text-sm mb-8">
                 {isCadastro ? "Grátis, sem cartão de crédito." : "Acesse sua agenda agora."}
               </p>
 
@@ -170,7 +170,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => { setUsePassword(!usePassword); setShowSignUpOption(false); setAuthError(""); }}
-                    className="text-xs text-slate-400 hover:text-brand transition-colors flex items-center justify-center gap-1.5"
+                    className="text-xs text-slate-600 hover:text-brand transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Lock className="w-3 h-3" />
                     {usePassword ? "Prefiro usar link mágico" : "Prefiro usar senha"}
@@ -180,7 +180,7 @@ function LoginContent() {
 
               <div className="flex items-center gap-3 my-6">
                 <div className="flex-1 border-t border-slate-100" />
-                <span className="text-xs text-slate-300 font-medium">ou</span>
+                <span className="text-xs text-slate-500 font-medium">ou</span>
                 <div className="flex-1 border-t border-slate-100" />
               </div>
 
@@ -209,7 +209,7 @@ function LoginContent() {
             </div>
           )}
 
-          <p className="text-xs text-slate-300 mt-10">© 2025 Agendify. Todos os direitos reservados.</p>
+          <p className="text-xs text-slate-500 mt-10">© 2025 Agendify. Todos os direitos reservados.</p>
         </div>
 
         {/* LADO DIREITO — Conteúdo visual (roxo) */}
@@ -284,5 +284,9 @@ export default function LoginPage() {
     </React.Suspense>
   );
 }
+
+
+
+
 
 
