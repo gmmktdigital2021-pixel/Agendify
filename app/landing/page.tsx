@@ -227,7 +227,7 @@ export default function LandingPage() {
             {/* Cabeleireiras */}
             <Link href="/nichos/cabeleireiras" className="group rounded-3xl overflow-hidden bg-slate-50 border border-slate-100 hover:shadow-xl transition-all duration-300">
                <div className="h-48 overflow-hidden relative">
-                 <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80" alt="Cabeleireiras" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                 <img src="https://images.unsplash.com/photo-1582095133179-bfd08e2195ef?w=400&q=80" alt="Cabeleireiras" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                </div>
                <div className="p-6">
                  <h3 className="font-bold text-xl text-slate-800 mb-2">Cabeleireiras</h3>
@@ -700,6 +700,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
