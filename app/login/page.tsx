@@ -88,7 +88,7 @@ function LoginContent() {
       <div className="w-full h-screen flex">
 
         {/* LADO ESQUERDO — Formulário (branco com canto arredondado) */}
-        <div className="w-full lg:w-[55%] bg-white flex flex-col justify-center px-10 py-12 relative rounded-[2.5rem] lg:rounded-r-none z-10 shadow-xl">
+        <div className="w-full lg:w-[55%] bg-white flex flex-col justify-center items-center px-10 py-12 relative rounded-[2.5rem] lg:rounded-r-none z-10 shadow-xl">
 
           {/* Logo */}
           <Link href="/landing" className="flex items-center gap-2 mb-10">
@@ -284,4 +284,5 @@ export default function LoginPage() {
     </React.Suspense>
   );
 }
+
 
