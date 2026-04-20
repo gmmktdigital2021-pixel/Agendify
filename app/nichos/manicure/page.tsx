@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
-  CalendarCheck, ChevronDown, Menu, X, CalendarDays, Target, BellRing, Star, Instagram, Phone
+  CalendarCheck, ChevronDown, Menu, X, CalendarDays, Target, BellRing, Star, MessageCircle, Phone
 } from "lucide-react";
 
 export default function NichoPage() {
@@ -192,7 +192,7 @@ export default function NichoPage() {
             <Star className="w-6 h-6 fill-current"/><Star className="w-6 h-6 fill-current"/><Star className="w-6 h-6 fill-current"/><Star className="w-6 h-6 fill-current"/><Star className="w-6 h-6 fill-current"/>
           </div>
           <p className="text-slate-300 text-2xl md:text-3xl font-medium mb-12 italic leading-relaxed">
-            "Deixei de perder tempo no Instagram. Minhas clientes adoram marcar sozinhas."
+            "Deixei de perder tempo no MessageCircle. Minhas clientes adoram marcar sozinhas."
           </p>
           <div className="inline-flex items-center gap-4 text-left">
             <div className="w-14 h-14 rounded-full bg-brand flex items-center justify-center text-white font-bold text-2xl">S</div>
@@ -225,7 +225,7 @@ export default function NichoPage() {
               </Link>
               <p className="text-slate-400 text-sm leading-relaxed">A plataforma de agendamento online inteligente que trabalha por você 24 horas por dia.</p>
               <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-brand hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
+                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-brand hover:text-white transition-colors"><MessageCircle className="w-5 h-5" /></a>
                 <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-[#25D366] hover:text-white transition-colors"><Phone className="w-5 h-5" /></a>
               </div>
             </div>
