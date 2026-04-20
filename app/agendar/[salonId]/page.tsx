@@ -36,6 +36,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
   const [clientData, setClientData] = useState({ nome: "", telefone: "" });
   const [selectedDate, setSelectedDate] = useState(""); // YYYY-MM-DD
   const [selectedTime, setSelectedTime] = useState(""); // HH:MM
+  const [step2Errors, setStep2Errors] = useState(false);
 
   // Fetch Base Data
   useEffect(() => {
@@ -289,24 +290,46 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
             <div className="flex-1 p-6 animate-in slide-in-from-right">
               <h2 className="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2"><User className="w-5 h-5 text-brand" /> Seus dados</h2>
               <div className="space-y-5">
-                <Input
-                  label="Nome Completo *"
-                  value={clientData.nome}
-                  onChange={e => setClientData({ ...clientData, nome: e.target.value })}
-                  placeholder="Ex: Ana Clara"
-                  autoFocus
-                />
-                <Input
-                  label="Telefone WhatsApp *"
-                  value={clientData.telefone}
-                  onChange={e => setClientData({ ...clientData, telefone: e.target.value.replace(/\D/g, '') })}
-                  placeholder="Ex: 11999990000"
-                />
+                <div>
+                  <Input
+                    label="Nome Completo *"
+                    value={clientData.nome}
+                    onChange={e => {
+                      setClientData({ ...clientData, nome: e.target.value });
+                      if (step2Errors) setStep2Errors(false);
+                    }}
+                    placeholder="Ex: Ana Clara"
+                    autoFocus
+                  />
+                  {step2Errors && (!clientData.nome || clientData.nome.trim() === "") && (
+                    <p className="text-red-500 text-sm font-medium mt-1.5 ml-1">Nome é obrigatório</p>
+                  )}
+                </div>
+                <div>
+                  <Input
+                    label="Telefone WhatsApp *"
+                    value={clientData.telefone}
+                    onChange={e => {
+                      setClientData({ ...clientData, telefone: e.target.value.replace(/\D/g, '') });
+                      if (step2Errors) setStep2Errors(false);
+                    }}
+                    placeholder="Ex: 11999990000"
+                  />
+                  {step2Errors && clientData.telefone.length < 10 && (
+                    <p className="text-red-500 text-sm font-medium mt-1.5 ml-1">Telefone inválido</p>
+                  )}
+                </div>
               </div>
               <div className="mt-8 pt-6 border-t border-slate-100">
                 <Button
-                  onClick={() => setStep(3)}
-                  disabled={!clientData.nome || clientData.telefone.length < 10}
+                  onClick={() => {
+                    if (!clientData.nome || clientData.nome.trim() === "" || clientData.telefone.length < 10) {
+                      setStep2Errors(true);
+                      return;
+                    }
+                    setStep2Errors(false);
+                    setStep(3);
+                  }}
                   className="w-full text-lg py-3.5"
                 >
                   Continuar <Check className="w-5 h-5 ml-1" />
