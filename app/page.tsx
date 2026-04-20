@@ -15,7 +15,17 @@ import {
   Droplet,
   Instagram,
   Phone,
-  ArrowRight
+  ArrowRight,
+  CalendarDays,
+  Target,
+  BellRing,
+  Link as LinkIcon,
+  MessageCircle,
+  BarChart3,
+  Palette,
+  LayoutDashboard,
+  Users,
+  Star
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -264,6 +274,200 @@ export default function LandingPage() {
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. O FIM DO CAOS DIÁRIO */}
+      <section className="py-24 bg-slate-50 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">O fim do caos diário</h2>
+            <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto">Esqueça as ligações para marcar horário, as mensagens no WhatsApp às 23h e os clientes que somem sem avisar.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
+              <div className="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center mb-6">
+                <CalendarDays className="w-7 h-7" />
+              </div>
+              <h3 className="font-bold text-xl text-slate-800 mb-3">Agenda Automática</h3>
+              <p className="text-slate-500 leading-relaxed">Seus clientes marcam sozinhos, 24 horas por dia, 7 dias por semana.</p>
+            </div>
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
+              <div className="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center mb-6">
+                <Target className="w-7 h-7" />
+              </div>
+              <h3 className="font-bold text-xl text-slate-800 mb-3">Foco Total</h3>
+              <p className="text-slate-500 leading-relaxed">Sem interrupções. Você foca no atendimento enquanto o Agendify cuida da agenda.</p>
+            </div>
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
+              <div className="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center mb-6">
+                <BellRing className="w-7 h-7" />
+              </div>
+              <h3 className="font-bold text-xl text-slate-800 mb-3">Zero Faltas</h3>
+              <p className="text-slate-500 leading-relaxed">Lembretes automáticos pelo WhatsApp reduzem faltas em até 90%.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. COMO FUNCIONA */}
+      <section className="py-24 bg-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-widest mb-6">
+            Como funciona
+          </div>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-16 tracking-tight">Sua agenda no piloto automático em 3 passos</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative mb-16">
+            {/* Arrows only visible on desktop */}
+            <div className="hidden md:block absolute top-12 left-1/6 right-1/6 w-2/3 h-0.5 bg-slate-100 -z-10 mx-auto transform translate-x-[25%] -translate-y-[50%]"></div>
+            
+            <div className="flex flex-col items-center bg-white z-10 relative">
+              <div className="w-24 h-24 bg-brand text-white rounded-full flex items-center justify-center text-4xl font-extrabold mb-6 shadow-xl shadow-brand/20">1</div>
+              <h3 className="font-bold text-xl text-slate-800 mb-3">Crie sua conta</h3>
+              <p className="text-slate-500 text-center">Cadastre-se grátis em menos de 2 minutos. Sem cartão de crédito.</p>
+            </div>
+            <div className="flex flex-col items-center bg-white z-10 relative">
+              <div className="w-24 h-24 bg-brand text-white rounded-full flex items-center justify-center text-4xl font-extrabold mb-6 shadow-xl shadow-brand/20">2</div>
+              <h3 className="font-bold text-xl text-slate-800 mb-3">Configure seus serviços</h3>
+              <p className="text-slate-500 text-center">Adicione seus serviços, horários e personalize sua página pública.</p>
+            </div>
+            <div className="flex flex-col items-center bg-white z-10 relative">
+              <div className="w-24 h-24 bg-brand text-white rounded-full flex items-center justify-center text-4xl font-extrabold mb-6 shadow-xl shadow-brand/20">3</div>
+              <h3 className="font-bold text-xl text-slate-800 mb-3">Compartilhe seu link</h3>
+              <p className="text-slate-500 text-center">Envie o link para seus clientes pelo Instagram ou WhatsApp e pronto!</p>
+            </div>
+          </div>
+          
+          <Link href="/login" className="bg-brand text-white px-10 py-5 rounded-full font-extrabold text-xl shadow-2xl hover:scale-105 transition-transform inline-block">
+            Começar agora grátis
+          </Link>
+        </div>
+      </section>
+
+      {/* 8. FUNCIONALIDADES PREMIUM */}
+      <section className="py-24 bg-slate-50 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest mb-6">
+              Funcionalidades
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Tudo que você precisa para crescer</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+              <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
+                <LinkIcon className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 mb-2">Agendamento Online 24h</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Link público personalizado. Clientes agendam a qualquer hora sem precisar te chamar.</p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+              <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
+                <MessageCircle className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 mb-2">Integração com WhatsApp</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Confirmações e lembretes automáticos enviados direto no WhatsApp do cliente.</p>
+            </div>
+
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+              <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
+                <BarChart3 className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 mb-2">Dashboard Completo</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Acompanhe faturamento, atendimentos e horários livres em tempo real.</p>
+            </div>
+
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+              <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
+                <Palette className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 mb-2">Página Personalizada</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Customize as cores e foto do seu perfil para combinar com sua marca.</p>
+            </div>
+
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+              <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
+                <LayoutDashboard className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 mb-2">Agenda Semanal</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Visualize toda sua semana de um jeito simples e organize seus horários.</p>
+            </div>
+
+            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/10 transition-all duration-300 group">
+              <div className="w-12 h-12 bg-slate-50 group-hover:bg-brand/10 text-slate-600 group-hover:text-brand rounded-xl flex items-center justify-center mb-6 transition-colors">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-lg text-slate-800 mb-2">Gestão de Clientes</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Histórico completo de cada cliente, serviços realizados e muito mais.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. DEPOIMENTOS */}
+      <section className="py-24 bg-slate-900 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">O que dizem nossos clientes</h2>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700">
+              <div className="flex gap-1 text-yellow-400 mb-6">
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+              </div>
+              <p className="text-slate-300 text-lg mb-8 italic">"Antes eu perdia 1 hora por dia marcando horário no Instagram. Agora minha agenda se preenche sozinha."</p>
+              <div className="flex items-center gap-4 mt-auto">
+                <div className="w-12 h-12 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xl">C</div>
+                <div>
+                  <h4 className="font-bold text-white">Camila R.</h4>
+                  <p className="text-slate-400 text-sm">Cabeleireira · São Paulo</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700">
+              <div className="flex gap-1 text-yellow-400 mb-6">
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+              </div>
+              <p className="text-slate-300 text-lg mb-8 italic">"Minhas clientes adoram poder marcar online. As faltas diminuíram muito desde que uso o Agendify."</p>
+              <div className="flex items-center gap-4 mt-auto">
+                <div className="w-12 h-12 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xl">F</div>
+                <div>
+                  <h4 className="font-bold text-white">Fernanda M.</h4>
+                  <p className="text-slate-400 text-sm">Manicure · Rio de Janeiro</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-800 p-8 rounded-3xl border border-slate-700">
+              <div className="flex gap-1 text-yellow-400 mb-6">
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+                <Star className="w-5 h-5 fill-current" />
+              </div>
+              <p className="text-slate-300 text-lg mb-8 italic">"Sistema simples e que funciona de verdade. Recomendo para qualquer profissional de beleza."</p>
+              <div className="flex items-center gap-4 mt-auto">
+                <div className="w-12 h-12 rounded-full bg-brand flex items-center justify-center text-white font-bold text-xl">A</div>
+                <div>
+                  <h4 className="font-bold text-white">Ana Paula S.</h4>
+                  <p className="text-slate-400 text-sm">Designer de Sobrancelhas · Belo Horizonte</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
