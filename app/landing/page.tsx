@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   CalendarCheck, ChevronDown, Menu, X, CalendarDays, Target, BellRing, 
-  Star, MessageCircle, Phone, ArrowRight, CheckCircle2, ChevronUp, Zap, Clock
+  Star, MessageCircle, Phone, ArrowRight, CheckCircle2, ChevronUp, Zap, Clock, XCircle
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -505,9 +505,14 @@ export default function LandingPage() {
                  Testar Grátis
                </Link>
                <ul className="flex flex-col gap-4 text-slate-600">
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Agendamentos:</span> Até 20/mês</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Clientes:</span> Até 20</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Serviços:</span> Até 5</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Até 20 agendamentos/mês</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Até 20 clientes</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Até 5 serviços</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Link público de agendamento</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Integração WhatsApp</li>
+                 <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Relatórios e gráficos</li>
+                 <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Clientes ilimitados</li>
+                 <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Suporte prioritário</li>
                </ul>
              </div>
 
@@ -525,9 +530,14 @@ export default function LandingPage() {
                  Assinar Profissional
                </Link>
                <ul className="flex flex-col gap-4 text-slate-700">
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-medium text-slate-800">Agendamentos:</span> Até 40/mês</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-medium text-slate-800">Clientes:</span> Até 40</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> <span className="font-medium text-slate-800">Serviços:</span> Até 10</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Até 40 agendamentos/mês</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Até 40 clientes</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Até 10 serviços</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Link público de agendamento</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Integração WhatsApp</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Relatórios e gráficos</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Dashboard completo</li>
+                 <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Suporte prioritário</li>
                </ul>
              </div>
 
@@ -542,9 +552,12 @@ export default function LandingPage() {
                  Assinar Premium
                </Link>
                <ul className="flex flex-col gap-4 text-slate-600">
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Agendamentos:</span> Ilimitado</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Clientes:</span> Ilimitado</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-medium text-slate-800">Serviços:</span> Ilimitado</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> <span className="font-bold text-slate-800">Tudo do Profissional</span></li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Múltiplos profissionais</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Suporte prioritário</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Personalização avançada</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Relatórios avançados</li>
+                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Acesso antecipado a novidades</li>
                </ul>
              </div>
           </div>
@@ -700,6 +713,7 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
 
