@@ -237,45 +237,8 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
                 <CheckCircle2 className="w-10 h-10 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">Agendamento Solicitado!</h2>
-              <p className="text-slate-500 mb-8">Sua solicitação foi enviada para o salão. Clique no botão abaixo para concluir o agendamento pelo WhatsApp.</p>
+              <p className="text-slate-500 mb-8">Seu agendamento foi enviado com sucesso! O salão entrará em contato para confirmação.</p>
 
-              <div className="p-4 bg-slate-50 rounded-xl w-full flex flex-col text-left gap-2 shadow-inner border border-slate-100 mb-6">
-                <p className="text-sm"><b>Serviço:</b> {selectedService?.nome}</p>
-                <p className="text-sm"><b>Data:</b> {selectedDate.split('-').reverse().join('/')}</p>
-                <p className="text-sm"><b>Hora:</b> {selectedTime}</p>
-              </div>
-
-              {(() => {
-                const clName = clientData.nome.split(' ')[0];
-                const dtParts = selectedDate.split('-');
-                const strDt = `${dtParts[2]}/${dtParts[1]}/${dtParts[0]}`;
-                let msg = salon?.mensagem_padrao || `Olá! Sou {nome}, agendei {servico} para {dia} às {hora} pelo Agendify.`;
-                msg = msg.replace('{nome}', clName)
-                    .replace('{dia}', strDt)
-                    .replace('{hora}', selectedTime)
-                    .replace('{servico}', selectedService?.nome || '');
-                const cleanPhone = salon?.whatsapp?.replace(/\D/g, '');
-                
-                if (!cleanPhone) {
-                  return (
-                    <button
-                      disabled
-                      className="w-full bg-slate-300 text-white font-bold text-lg py-4 rounded-xl transition-all cursor-not-allowed"
-                    >
-                      Configure seu WhatsApp nas Configurações
-                    </button>
-                  );
-                }
-
-                return (
-                  <button
-                    onClick={() => window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank')}
-                    className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold text-lg py-4 rounded-xl transition-all"
-                  >
-                    Enviar mensagem no WhatsApp 💬
-                  </button>
-                );
-              })()}
             </div>
           )}
 

@@ -40,7 +40,7 @@ export default function LandingPage() {
 
   const faqs = [
     { question: "O Agendify serve para quem trabalha sozinho?", answer: "Sim! Nossa plataforma foi pensada para profissionais independentes e para salões com equipe." },
-    { question: "Como funciona a mensagem de WhatsApp?", answer: "Nós enviamos lembretes automáticos um dia antes e algumas horas antes do agendamento para reduzir as faltas." },
+    { question: "Como funciona a confirmação de agendamento?", answer: "As confirmações são geradas para manter sua agenda perfeitamente organizada." },
     { question: "Preciso baixar um aplicativo?", answer: "Não, o sistema roda direto no seu navegador ou no do cliente. Rápido e prático para ambos." },
     { question: "Posso cancelar a qualquer momento?", answer: "Com certeza, não temos fidelidade. Você pode assinar e cancelar quando quiser." },
     { question: "Tem suporte caso eu tenha dúvidas?", answer: "Sim! Temos um suporte via WhatsApp dedicado para todos os nossos assinantes." },
@@ -336,7 +336,7 @@ export default function LandingPage() {
             <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-all duration-300">
               <div className="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center mb-6"><BellRing className="w-7 h-7" /></div>
               <h3 className="font-bold text-xl text-slate-800 mb-3">Zero Faltas</h3>
-              <p className="text-slate-500">Lembretes automáticos pelo WhatsApp reduzem faltas em até 90%.</p>
+              <p className="text-slate-500">Nossa plataforma organiza a sua agenda e reduz as faltas em até 90%.</p>
             </div>
           </div>
         </div>
@@ -375,7 +375,7 @@ export default function LandingPage() {
                 3
               </div>
               <h3 className="text-2xl font-bold text-slate-800 mb-3">Veja o dinheiro entrar</h3>
-              <p className="text-slate-500">O cliente marca, você recebe notificação. Faltas zeram com o lembrete de WhatsApp que ele recebe.</p>
+              <p className="text-slate-500">O cliente marca e você recebe notificação. Faltas zeram com as verificações que ele recebe.</p>
             </div>
           </div>
         </div>
@@ -398,11 +398,6 @@ export default function LandingPage() {
                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-brand mb-6"><Clock className="w-6 h-6" /></div>
                <h3 className="font-bold text-xl text-slate-800 mb-3">Horários Inteligentes</h3>
                <p className="text-slate-500">O sistema calcula o tempo de cada serviço e mostra apenas horários onde tudo cabe.</p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/5 transition-all duration-300">
-               <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-brand mb-6"><BellRing className="w-6 h-6" /></div>
-               <h3 className="font-bold text-xl text-slate-800 mb-3">Avisos no Whatsapp</h3>
-               <p className="text-slate-500">Chega de dar bronca de falta. O sistema avisa o cliente no zap antes do horário.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-brand/5 transition-all duration-300">
                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-brand mb-6"><Target className="w-6 h-6" /></div>
@@ -509,7 +504,7 @@ export default function LandingPage() {
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Clientes: Até 20</li>
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Serviços: Até 5</li>
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Link público de agendamento</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Integração WhatsApp</li>
+
                  <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Relatórios e gráficos</li>
                  <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Clientes ilimitados</li>
                  <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Suporte prioritário</li>
@@ -534,7 +529,7 @@ export default function LandingPage() {
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Clientes: Até 30</li>
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Serviços: Até 10</li>
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Link público de agendamento</li>
-                 <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Integração WhatsApp</li>
+
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Relatórios e gráficos</li>
                  <li className="flex gap-3 items-center"><CheckCircle2 className="w-5 h-5 text-brand shrink-0" /> Dashboard completo</li>
                  <li className="flex gap-3 items-center text-slate-400"><XCircle className="w-5 h-5 text-slate-300 shrink-0" /> Suporte prioritário</li>
