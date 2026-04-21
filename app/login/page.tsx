@@ -87,8 +87,8 @@ function LoginContent() {
     <div className="min-h-screen bg-[#7C3AED] flex font-sans">
       <div className="w-full h-screen flex">
 
-        {/* LADO ESQUERDO — Formulário (branco com canto arredondado) */}
-        <div className="w-full lg:w-[55%] bg-white flex flex-col justify-center items-center px-10 py-12 relative rounded-[2.5rem] lg:rounded-r-none z-10 shadow-xl">
+        {/* LADO ESQUERDO — Formulário (branco) */}
+        <div className="w-full lg:w-[55%] bg-white flex flex-col justify-center items-center px-10 py-12 relative z-10 shadow-xl">
 
           {/* Logo */}
           <Link href="/landing" className="flex items-center gap-2 mb-10">
@@ -213,7 +213,7 @@ function LoginContent() {
         </div>
 
         {/* LADO DIREITO — Conteúdo visual (roxo) */}
-        <div className="hidden lg:flex w-[45%] bg-[#7C3AED] flex-col justify-between p-10 relative overflow-hidden rounded-r-[2.5rem]">
+        <div className="hidden lg:flex w-[45%] bg-[#7C3AED] flex-col justify-between p-10 relative overflow-hidden">
 
           {/* Círculos decorativos */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full -mr-36 -mt-36 pointer-events-none" />
