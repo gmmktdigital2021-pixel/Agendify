@@ -672,10 +672,10 @@ export default function DashboardPage() {
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Buscar clientes por nome..." 
+              placeholder="Buscar agendamentos por nome..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition-colors"
             />
           </div>
         </Card>
@@ -990,3 +990,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+
