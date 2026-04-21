@@ -62,7 +62,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
     if (selectedDate && salonId && step === 3) {
       const loadAppts = async () => {
         const { data } = await supabase.from('appointments')
-          .select(`id, hora_inicio, status, services(duracao_minutos)`)
+          .select(`id, hora_inicio, hora_fim, status, services(duracao_minutos)`)
           .eq('salon_id', salonId)
           .eq('data', selectedDate)
           .neq('status', 'cancelado');
@@ -86,7 +86,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
     const closeMin = timeToMins(salon.horario_fim);
     const duracao = selectedService.duracao_minutos || 60;
 
-    const slots: string[] = [];
+    let slots: string[] = [];
 
     for (let m = openMin; m + duracao <= closeMin; m += 30) {
       const slotStart = m;
@@ -96,8 +96,7 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
 
       for (const app of appointmentsFilterDate) {
         const appStart = timeToMins(app.hora_inicio.substring(0, 5));
-        const appDur = app.services?.duracao_minutos || 60;
-        const appEnd = appStart + appDur;
+        const appEnd = timeToMins(app.hora_fim.substring(0, 5)); // usa hora_fim direto do banco
 
         if (slotStart < appEnd && slotEnd > appStart) {
           isOverlapping = true;
@@ -110,6 +109,18 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
         const min = (m % 60).toString().padStart(2, '0');
         slots.push(`${hr}:${min}`);
       }
+    }
+
+    // Filtra horário de almoço
+    if (salon.horario_almoco_inicio && salon.horario_almoco_fim) {
+      const almAlmocoInicio = timeToMins(salon.horario_almoco_inicio.substring(0, 5));
+      const almAlmocoFim = timeToMins(salon.horario_almoco_fim.substring(0, 5));
+      slots = slots.filter(s => {
+        const sStart = timeToMins(s);
+        const sEnd = sStart + duracao;
+        // Remove slot se colidir com horário de almoço
+        return !(sStart < almAlmocoFim && sEnd > almAlmocoInicio);
+      });
     }
 
     const today = new Date();
