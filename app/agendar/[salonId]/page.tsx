@@ -243,16 +243,27 @@ export default function AgendarPage({ params }: { params: { salonId: string } })
                     .replace('{dia}', strDt)
                     .replace('{hora}', selectedTime)
                     .replace('{servico}', selectedService?.nome || '');
-                const cleanPhone = salon?.telefone?.replace(/\D/g, '');
+                const cleanPhone = salon?.whatsapp?.replace(/\D/g, '');
                 
-                return cleanPhone ? (
-                  <Button 
-                    onClick={() => window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank')} 
-                    className="w-full bg-[#25D366] hover:bg-green-600 font-bold text-lg py-3.5"
+                if (!cleanPhone) {
+                  return (
+                    <button
+                      disabled
+                      className="w-full bg-slate-300 text-white font-bold text-lg py-4 rounded-xl transition-all cursor-not-allowed"
+                    >
+                      Configure seu WhatsApp nas Configurações
+                    </button>
+                  );
+                }
+
+                return (
+                  <button
+                    onClick={() => window.open(`https://wa.me/55${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank')}
+                    className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold text-lg py-4 rounded-xl transition-all"
                   >
                     Enviar mensagem no WhatsApp 💬
-                  </Button>
-                ) : null;
+                  </button>
+                );
               })()}
             </div>
           )}
