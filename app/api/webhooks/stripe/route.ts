@@ -5,12 +5,6 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16' as any,
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
 // Usa o Service Role Key para ignorar Row Level Security (RLS) no webhook
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +12,12 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2023-10-16' as any,
+  });
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
   try {
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
