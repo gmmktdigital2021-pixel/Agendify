@@ -17,6 +17,7 @@ export default function PlanosPage() {
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [loadingPrice, setLoadingPrice] = useState<string | null>(null);
+  const [userSession, setUserSession] = useState<any>(null);
   const router = useRouter();
 
   const PRICES = {
@@ -31,6 +32,7 @@ export default function PlanosPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       
+      setUserSession(session);
       setUserId(session.user.id);
       setUserEmail(session.user.email || "");
 
@@ -47,11 +49,9 @@ export default function PlanosPage() {
   }, []);
 
   const handleCheckout = async (priceId: string) => {
-    console.log('PRICES:', PRICES)
     setLoadingPrice(priceId)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      if (!userSession) {
         router.push('/login?modo=cadastro')
         return
       }
@@ -61,18 +61,19 @@ export default function PlanosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           priceId,
-          userId: session.user.id,
-          userEmail: session.user.email,
+          userId: userSession.user.id,
+          userEmail: userSession.user.email,
           planId: priceId === PRICES.PRO_MONTHLY || priceId === PRICES.PRO_PIX ? 'pro' : 'premium'
         })
       })
 
       const data = await response.json()
+      console.log('Checkout response:', data)
 
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert('Erro ao criar sessão de pagamento. Tente novamente.')
+        alert('Erro: ' + (data.error || 'Tente novamente'))
       }
     } catch (err) {
       console.error(err)
