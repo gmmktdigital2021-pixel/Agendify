@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Check, Zap, Crown, CheckCircle2, AlertCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from "next/navigation";
 
 type Subscription = {
@@ -13,7 +13,6 @@ type Subscription = {
 
 export default function PlanosPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [loadingPrice, setLoadingPrice] = useState<string | null>(null);
@@ -26,6 +25,11 @@ export default function PlanosPage() {
     PREMIUM_MONTHLY: process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY || '',
     PREMIUM_PIX: process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX || '',
   }
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     async function fetchPlan() {
@@ -43,7 +47,6 @@ export default function PlanosPage() {
         .single();
       
       if (data) setSubscription(data);
-      setLoading(false);
     }
     fetchPlan();
   }, []);
@@ -84,14 +87,6 @@ export default function PlanosPage() {
   }
 
   const currentPlan = subscription?.status === 'active' || subscription?.status === 'trialing' ? subscription.plan_id : 'free';
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20">
