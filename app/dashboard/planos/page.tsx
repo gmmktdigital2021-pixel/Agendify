@@ -19,6 +19,13 @@ export default function PlanosPage() {
   const [loadingPrice, setLoadingPrice] = useState<string | null>(null);
   const router = useRouter();
 
+  const PRICES = {
+    PRO_MONTHLY: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY || '',
+    PRO_PIX: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX || '',
+    PREMIUM_MONTHLY: process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY || '',
+    PREMIUM_PIX: process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX || '',
+  }
+
   useEffect(() => {
     async function fetchPlan() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -40,6 +47,7 @@ export default function PlanosPage() {
   }, []);
 
   const handleCheckout = async (priceId: string) => {
+    console.log('PRICES:', PRICES)
     setLoadingPrice(priceId)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -55,7 +63,7 @@ export default function PlanosPage() {
           priceId,
           userId: session.user.id,
           userEmail: session.user.email,
-          planId: priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY || priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX ? 'pro' : 'premium'
+          planId: priceId === PRICES.PRO_MONTHLY || priceId === PRICES.PRO_PIX ? 'pro' : 'premium'
         })
       })
 
@@ -161,18 +169,18 @@ export default function PlanosPage() {
           ) : (
             <div className="space-y-3">
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY!)}
+                onClick={() => handleCheckout(PRICES.PRO_MONTHLY)}
                 disabled={loadingPrice !== null}
                 className="w-full py-4 rounded-xl font-bold text-white bg-brand hover:bg-brand-hover transition-colors shadow-lg shadow-brand/30 flex items-center justify-center"
               >
-                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ? 'Processando...' : 'Assinar Mensal'}
+                {loadingPrice === PRICES.PRO_MONTHLY ? 'Processando...' : 'Assinar Mensal'}
               </button>
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX!)}
+                onClick={() => handleCheckout(PRICES.PRO_PIX)}
                 disabled={loadingPrice !== null}
                 className="w-full py-3 rounded-xl font-bold text-brand bg-white border-2 border-brand/20 hover:bg-brand/5 transition-colors flex items-center justify-center text-sm"
               >
-                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX ? 'Processando...' : 'Comprar Anual (Pix)'}
+                {loadingPrice === PRICES.PRO_PIX ? 'Processando...' : 'Comprar Anual (Pix)'}
               </button>
             </div>
           )}
@@ -210,18 +218,18 @@ export default function PlanosPage() {
           ) : (
             <div className="space-y-3">
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY!)}
+                onClick={() => handleCheckout(PRICES.PREMIUM_MONTHLY)}
                 disabled={loadingPrice !== null}
                 className="w-full py-4 rounded-xl font-bold text-slate-900 bg-amber-500 hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center justify-center"
               >
-                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY ? 'Processando...' : 'Assinar Mensal'}
+                {loadingPrice === PRICES.PREMIUM_MONTHLY ? 'Processando...' : 'Assinar Mensal'}
               </button>
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX!)}
+                onClick={() => handleCheckout(PRICES.PREMIUM_PIX)}
                 disabled={loadingPrice !== null}
                 className="w-full py-3 rounded-xl font-bold text-amber-500 bg-slate-800 border-2 border-slate-700 hover:bg-slate-700 transition-colors flex items-center justify-center text-sm"
               >
-                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX ? 'Processando...' : 'Comprar Anual (Pix)'}
+                {loadingPrice === PRICES.PREMIUM_PIX ? 'Processando...' : 'Comprar Anual (Pix)'}
               </button>
             </div>
           )}
