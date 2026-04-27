@@ -84,8 +84,12 @@ export async function POST(req: Request) {
       case 'customer.subscription.updated': {
         const subId = subscription.id;
         const status = subscription.status;
-        const current_period_start = new Date(subscription.current_period_start * 1000).toISOString();
-        const current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+        const current_period_start = subscription.items?.data?.[0]
+          ? new Date((subscription.items.data[0] as any).current_period_start * 1000).toISOString()
+          : null;
+        const current_period_end = subscription.items?.data?.[0]
+          ? new Date((subscription.items.data[0] as any).current_period_end * 1000).toISOString()
+          : null;
         const cancel_at_period_end = subscription.cancel_at_period_end;
         
         await supabaseAdmin.from('subscriptions').update({
