@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Crown
 } from "lucide-react";
 import { supabase, db } from "@/lib/supabase";
 import Image from "next/image";
@@ -119,6 +120,7 @@ export default function DashboardLayout({
     { name: "Agenda", href: "/dashboard/agenda", icon: Calendar, badge: pendingCount },
     { name: "Clientes", href: "/dashboard/clientes", icon: Users },
     { name: "Serviços", href: "/dashboard/servicos", icon: Scissors },
+    { name: "Planos", href: "/dashboard/planos", icon: Crown },
     { name: "Config.", href: "/dashboard/configuracoes", icon: Settings },
   ];
 
