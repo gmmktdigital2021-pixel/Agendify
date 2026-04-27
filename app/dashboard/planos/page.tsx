@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Check, Zap, Crown, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 type Subscription = {
   plan_id: string;
@@ -15,7 +16,8 @@ export default function PlanosPage() {
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [loadingPrice, setLoadingPrice] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchPlan() {
@@ -37,36 +39,40 @@ export default function PlanosPage() {
     fetchPlan();
   }, []);
 
-  const handleCheckout = async (priceId: string, planId: string) => {
-    if (!priceId) {
-      alert("Preço não configurado. Verifique as variáveis de ambiente.");
-      return;
-    }
-    setCheckoutLoading(planId);
+  const handleCheckout = async (priceId: string) => {
+    setLoadingPrice(priceId)
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        router.push('/login?modo=cadastro')
+        return
+      }
+
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           priceId,
-          userId,
-          userEmail,
-          planId
-        }),
-      });
-      const data = await res.json();
+          userId: session.user.id,
+          userEmail: session.user.email,
+          planId: priceId.includes(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY!) ? 'pro' : 'premium'
+        })
+      })
+
+      const data = await response.json()
+
       if (data.url) {
-        window.location.href = data.url;
+        window.location.href = data.url // redireciona para o Stripe
       } else {
-        alert(data.error || "Erro ao iniciar checkout");
+        alert('Erro ao criar sessão de pagamento. Tente novamente.')
       }
-    } catch (e) {
-      console.error(e);
-      alert("Falha de conexão com o servidor de pagamento.");
+    } catch (err) {
+      console.error(err)
+      alert('Erro de conexão. Tente novamente.')
     } finally {
-      setCheckoutLoading(null);
+      setLoadingPrice(null)
     }
-  };
+  }
 
   const currentPlan = subscription?.status === 'active' || subscription?.status === 'trialing' ? subscription.plan_id : 'free';
 
@@ -155,18 +161,18 @@ export default function PlanosPage() {
           ) : (
             <div className="space-y-3">
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY!, 'pro')}
-                disabled={checkoutLoading !== null}
+                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY!)}
+                disabled={loadingPrice !== null}
                 className="w-full py-4 rounded-xl font-bold text-white bg-brand hover:bg-brand-hover transition-colors shadow-lg shadow-brand/30 flex items-center justify-center"
               >
-                {checkoutLoading === 'pro' ? 'Redirecionando...' : 'Assinar Mensal'}
+                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY ? 'Processando...' : 'Assinar Mensal'}
               </button>
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX!, 'pro_pix')}
-                disabled={checkoutLoading !== null}
+                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX!)}
+                disabled={loadingPrice !== null}
                 className="w-full py-3 rounded-xl font-bold text-brand bg-white border-2 border-brand/20 hover:bg-brand/5 transition-colors flex items-center justify-center text-sm"
               >
-                {checkoutLoading === 'pro_pix' ? 'Aguarde...' : 'Comprar Anual (Pix)'}
+                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX ? 'Processando...' : 'Comprar Anual (Pix)'}
               </button>
             </div>
           )}
@@ -204,18 +210,18 @@ export default function PlanosPage() {
           ) : (
             <div className="space-y-3">
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY!, 'premium')}
-                disabled={checkoutLoading !== null}
+                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY!)}
+                disabled={loadingPrice !== null}
                 className="w-full py-4 rounded-xl font-bold text-slate-900 bg-amber-500 hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center justify-center"
               >
-                {checkoutLoading === 'premium' ? 'Redirecionando...' : 'Assinar Mensal'}
+                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_MONTHLY ? 'Processando...' : 'Assinar Mensal'}
               </button>
               <button 
-                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX!, 'premium_pix')}
-                disabled={checkoutLoading !== null}
+                onClick={() => handleCheckout(process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX!)}
+                disabled={loadingPrice !== null}
                 className="w-full py-3 rounded-xl font-bold text-amber-500 bg-slate-800 border-2 border-slate-700 hover:bg-slate-700 transition-colors flex items-center justify-center text-sm"
               >
-                {checkoutLoading === 'premium_pix' ? 'Aguarde...' : 'Comprar Anual (Pix)'}
+                {loadingPrice === process.env.NEXT_PUBLIC_STRIPE_PRICE_PREMIUM_PIX ? 'Processando...' : 'Comprar Anual (Pix)'}
               </button>
             </div>
           )}
