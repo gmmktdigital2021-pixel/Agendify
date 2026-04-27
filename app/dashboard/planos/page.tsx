@@ -55,14 +55,14 @@ export default function PlanosPage() {
           priceId,
           userId: session.user.id,
           userEmail: session.user.email,
-          planId: priceId.includes(process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY!) ? 'pro' : 'premium'
+          planId: priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY || priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_PIX ? 'pro' : 'premium'
         })
       })
 
       const data = await response.json()
 
       if (data.url) {
-        window.location.href = data.url // redireciona para o Stripe
+        window.location.href = data.url
       } else {
         alert('Erro ao criar sessão de pagamento. Tente novamente.')
       }
