@@ -1,46 +1,51 @@
-import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 
-export const dynamic = 'force-dynamic';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
 
-export async function POST(req: Request) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2023-10-16' as any,
-  });
-
+export async function POST(req: NextRequest) {
   try {
-    const { priceId, userId, userEmail, planId } = await req.json();
+    const body = await req.json();
+    const { priceId, userId, userEmail, planId } = body;
 
-    if (!priceId || !userId || !userEmail || !planId) {
-      return NextResponse.json({ error: 'Faltam dados obrigatórios' }, { status: 400 });
+    console.log("🔑 Stripe checkout request:", { priceId, userId, userEmail, planId });
+
+    if (!priceId || !userId) {
+      return NextResponse.json(
+        { error: "priceId e userId são obrigatórios" },
+        { status: 400 }
+      );
     }
 
-    // Identifica se é pagamento avulso (Pix/Boleto)
-    const isAvulso = planId.includes('pix') || 
-                     priceId === process.env.STRIPE_PRICE_PRO_PIX || 
-                     priceId === process.env.STRIPE_PRICE_PREMIUM_PIX;
-    
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error("❌ STRIPE_SECRET_KEY não configurada");
+      return NextResponse.json(
+        { error: "Configuração de pagamento incompleta" },
+        { status: 500 }
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: isAvulso ? ['pix', 'boleto'] : ['card'],
-      mode: isAvulso ? 'payment' : 'subscription',
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/planos?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/planos?canceled=true`,
       customer_email: userEmail,
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        userId,
-        planId,
-      },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard?upgrade=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/landing#precos`,
+      metadata: { userId, planId },
+      locale: "pt-BR",
     });
 
+    console.log("✅ Stripe session criada:", session.id);
+
     return NextResponse.json({ url: session.url });
-  } catch (error: unknown) {
-    console.error('Erro no checkout:', error);
-    return NextResponse.json({ error: 'Erro ao criar sessão de checkout' }, { status: 500 });
+  } catch (error: any) {
+    console.error("❌ Stripe error:", error.message);
+    return NextResponse.json(
+      { error: error.message || "Erro interno" },
+      { status: 500 }
+    );
   }
 }
