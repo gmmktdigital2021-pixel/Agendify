@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
-
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Stripe instanciado DENTRO da função, não no módulo
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2024-06-20",
+    });
+
     const body = await req.json();
     const { priceId, userId, userEmail, planId } = body;
 
