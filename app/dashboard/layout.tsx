@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  Crown
+  Crown,
+  UserCheck
 } from "lucide-react";
 import { supabase, db } from "@/lib/supabase";
 import Image from "next/image";
@@ -38,6 +39,7 @@ export default function DashboardLayout({
   // Mobile Sidebar
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [userPlan, setUserPlan] = useState("free");
 
   const fetchPending = useCallback(async (sid: string) => {
     try {
@@ -81,6 +83,12 @@ export default function DashboardLayout({
 
       if (salon) {
         setSalonId(salon.id);
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("plan_id")
+          .eq("user_id", session.user.id)
+          .single();
+        setUserPlan(sub?.plan_id || "free");
         if (salon.foto_perfil) setSalonFotoPerfil(salon.foto_perfil);
         fetchPending(salon.id);
       }
@@ -120,6 +128,7 @@ export default function DashboardLayout({
     { name: "Agenda", href: "/dashboard/agenda", icon: Calendar, badge: pendingCount },
     { name: "Clientes", href: "/dashboard/clientes", icon: Users },
     { name: "Serviços", href: "/dashboard/servicos", icon: Scissors },
+    ...(userPlan === "premium" ? [{ name: "Profissionais", href: "/dashboard/profissionais", icon: UserCheck }] : []),
     { name: "Planos", href: "/dashboard/planos", icon: Crown },
     { name: "Config.", href: "/dashboard/configuracoes", icon: Settings },
   ];
