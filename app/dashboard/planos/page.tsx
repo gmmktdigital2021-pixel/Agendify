@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { Check, X, Crown, Loader2, PartyPopper } from "lucide-react";
 
-export default function PlanosPage() {
+function PlanosContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentPlan, setCurrentPlan] = useState("free");
@@ -15,17 +16,12 @@ export default function PlanosPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCanceled, setShowCanceled] = useState(false);
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
 
   useEffect(() => {
-    // Verifica se voltou do Stripe com sucesso ou cancelamento
     if (searchParams.get("success") === "true") {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 6000);
@@ -34,22 +30,16 @@ export default function PlanosPage() {
       setShowCanceled(true);
       setTimeout(() => setShowCanceled(false), 4000);
     }
-
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { router.push("/login"); return; }
       setUserId(session.user.id);
       setUserEmail(session.user.email ?? "");
-
       const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan_id")
-        .eq("user_id", session.user.id)
-        .single();
-
+        .from("subscriptions").select("plan_id")
+        .eq("user_id", session.user.id).single();
       if (sub?.plan_id) setCurrentPlan(sub.plan_id);
     };
-
     init();
   }, [router, supabase, searchParams]);
 
@@ -63,12 +53,9 @@ export default function PlanosPage() {
         body: JSON.stringify({ priceId, userId, userEmail, planId }),
       });
       const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Erro: " + (data.error || "Resposta inválida"));
-      }
-    } catch (err) {
+      if (data.url) { window.location.href = data.url; }
+      else { alert("Erro: " + (data.error || "Resposta inválida")); }
+    } catch {
       alert("Erro de conexão. Tente novamente.");
     } finally {
       setLoadingPrice(null);
@@ -113,28 +100,20 @@ export default function PlanosPage() {
     },
   ];
 
-  const planNames: Record<string, string> = {
-    free: "Gratuito",
-    pro: "Profissional",
-    premium: "Premium",
-  };
+  const planNames: Record<string, string> = { free: "Gratuito", pro: "Profissional", premium: "Premium" };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto">
-
-        {/* Banner de sucesso */}
         {showSuccess && (
-          <div className="mb-8 p-5 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-4 animate-pulse">
+          <div className="mb-8 p-5 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-4">
             <PartyPopper className="text-green-500 shrink-0" size={28} />
             <div>
               <p className="font-bold text-green-800 text-lg">Parabéns! Plano ativado com sucesso! 🎉</p>
-              <p className="text-green-600 text-sm">Seu plano <strong>{planNames[currentPlan]}</strong> já está ativo. Aproveite todos os recursos!</p>
+              <p className="text-green-600 text-sm">Seu plano <strong>{planNames[currentPlan]}</strong> já está ativo!</p>
             </div>
           </div>
         )}
-
-        {/* Banner de cancelamento */}
         {showCanceled && (
           <div className="mb-8 p-5 bg-yellow-50 border border-yellow-200 rounded-2xl flex items-center gap-4">
             <X className="text-yellow-500 shrink-0" size={24} />
@@ -144,21 +123,18 @@ export default function PlanosPage() {
             </div>
           </div>
         )}
-
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Escolha seu plano</h1>
           <p className="text-gray-500">Cancele quando quiser. Sem contratos.</p>
           {currentPlan !== "free" && (
             <div className="mt-3 inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium">
-              <Crown size={14} />
-              Plano atual: {planNames[currentPlan]}
+              <Crown size={14} /> Plano atual: {planNames[currentPlan]}
             </div>
           )}
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => (
-            <div key={plan.id} className={`bg-white rounded-2xl p-6 shadow-sm border-2 flex flex-col ${plan.highlight ? "border-purple-500 shadow-purple-100 shadow-lg" : "border-gray-100"} ${currentPlan === plan.id ? "ring-2 ring-green-400" : ""}`}>
+            <div key={plan.id} className={`bg-white rounded-2xl p-6 shadow-sm border-2 flex flex-col ${plan.highlight ? "border-purple-500 shadow-lg" : "border-gray-100"} ${currentPlan === plan.id ? "ring-2 ring-green-400" : ""}`}>
               {plan.highlight && (
                 <div className="flex items-center gap-1 text-purple-600 text-sm font-semibold mb-3">
                   <Crown size={14} /> Mais popular
@@ -185,9 +161,7 @@ export default function PlanosPage() {
               </ul>
               {plan.priceId ? (
                 currentPlan === plan.id ? (
-                  <button disabled className="w-full py-3 rounded-xl bg-green-100 text-green-600 font-medium cursor-not-allowed">
-                    ✓ Plano ativo
-                  </button>
+                  <button disabled className="w-full py-3 rounded-xl bg-green-100 text-green-600 font-medium cursor-not-allowed">✓ Plano ativo</button>
                 ) : (
                   <button
                     onClick={() => handleCheckout(plan.priceId!, plan.planId)}
