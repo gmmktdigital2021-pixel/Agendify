@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import nodemailer from "nodemailer";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +26,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verifica limite de 5 profissionais
     const { count } = await supabase
       .from("professionals")
       .select("*", { count: "exact", head: true })
@@ -30,7 +38,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verifica se email já foi convidado neste salão
     const { data: existing } = await supabase
       .from("professionals")
       .select("id")
@@ -45,12 +52,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Gera token de convite único
     const inviteToken = crypto.randomUUID();
     const appUrl = "https://agendify-plpd.vercel.app";
     const inviteUrl = `${appUrl}/convite?token=${inviteToken}&salon=${salonId}`;
 
-    // Cria o profissional no banco
     const { data: professional, error } = await supabase
       .from("professionals")
       .insert({
@@ -67,7 +72,6 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    // Busca dados do salão para personalizar o e-mail
     const { data: salon } = await supabase
       .from("salons")
       .select("nome")
@@ -76,71 +80,47 @@ export async function POST(req: NextRequest) {
 
     const salonName = salon?.nome || "Agendify";
 
-    // Tenta convidar via Supabase Auth (para novos usuários)
-    const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-      email,
-      {
-        redirectTo: inviteUrl,
-        data: {
-          professional_id: professional.id,
-          salon_id: salonId,
-          invite_token: inviteToken,
-          role: "professional",
-          full_name: name,
-        },
-      }
-    );
+    // Envia e-mail via Gmail
+    await transporter.sendMail({
+      from: `"Agendify" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: `Você foi convidado para trabalhar no ${salonName}!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #7c3aed; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">✂️ Agendify</h1>
+          </div>
+          <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb;">
+            <h2 style="color: #111827;">Olá, ${name}! 👋</h2>
+            <p style="color: #6b7280; font-size: 16px;">
+              Você foi convidado para fazer parte da equipe do <strong>${salonName}</strong> no Agendify.
+            </p>
+            <p style="color: #6b7280; font-size: 16px;">
+              Clique no botão abaixo para aceitar o convite e acessar sua agenda:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${inviteUrl}" 
+                 style="background: #7c3aed; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                Aceitar convite
+              </a>
+            </div>
+            <p style="color: #9ca3af; font-size: 14px; text-align: center;">
+              Se não conseguir clicar no botão, copie e cole este link no navegador:<br/>
+              <a href="${inviteUrl}" style="color: #7c3aed;">${inviteUrl}</a>
+            </p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+              Agendify — Plataforma de agendamento para profissionais de beleza
+            </p>
+          </div>
+        </div>
+      `,
+    });
 
-    // Se usuário já existe, envia e-mail customizado via Resend
-    if (inviteError) {
-      console.log("Usuário já existe, enviando e-mail via Resend...");
-
-      const resendApiKey = process.env.RESEND_API_KEY;
-      if (resendApiKey) {
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "Agendify <onboarding@resend.dev>",
-            to: [email],
-            subject: `Você foi convidado para trabalhar no ${salonName}!`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="background: #7c3aed; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
-                  <h1 style="color: white; margin: 0; font-size: 24px;">Agendify</h1>
-                </div>
-                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb;">
-                  <h2 style="color: #111827;">Olá, ${name}! 👋</h2>
-                  <p style="color: #6b7280; font-size: 16px;">
-                    Você foi convidado para fazer parte da equipe do <strong>${salonName}</strong> no Agendify.
-                  </p>
-                  <p style="color: #6b7280; font-size: 16px;">
-                    Clique no botão abaixo para aceitar o convite e acessar sua agenda:
-                  </p>
-                  <div style="text-align: center; margin: 30px 0;">
-                    <a href="${inviteUrl}" 
-                       style="background: #7c3aed; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
-                      Aceitar convite
-                    </a>
-                  </div>
-                  <p style="color: #9ca3af; font-size: 14px; text-align: center;">
-                    Se não conseguir clicar no botão, copie e cole este link no navegador:<br/>
-                    <a href="${inviteUrl}" style="color: #7c3aed;">${inviteUrl}</a>
-                  </p>
-                </div>
-              </div>
-            `,
-          }),
-        });
-      }
-    }
-
+    console.log("✅ E-mail enviado via Gmail para:", email);
     return NextResponse.json({ professional });
   } catch (err: any) {
-    console.error("Erro ao convidar profissional:", err.message);
+    console.error("❌ Erro ao convidar profissional:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
