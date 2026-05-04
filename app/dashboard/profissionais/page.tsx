@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { Plus, Trash2, Mail, CheckCircle, Clock, User } from "lucide-react";
+import { Plus, Trash2, Mail, CheckCircle, Clock, User, X, AlertTriangle } from "lucide-react";
 
 interface Professional {
   id: string;
@@ -14,6 +14,73 @@ interface Professional {
   avatar_url: string | null;
 }
 
+interface ModalProps {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  type: "success" | "error" | "warning" | "confirm";
+  onConfirm?: () => void;
+  onClose: () => void;
+}
+
+function Modal({ isOpen, title, message, type, onConfirm, onClose }: ModalProps) {
+  if (!isOpen) return null;
+
+  const icons = {
+    success: <CheckCircle size={24} className="text-green-500" />,
+    error: <X size={24} className="text-red-500" />,
+    warning: <AlertTriangle size={24} className="text-yellow-500" />,
+    confirm: <AlertTriangle size={24} className="text-red-500" />,
+  };
+
+  const colors = {
+    success: "bg-green-50 border-green-200",
+    error: "bg-red-50 border-red-200",
+    warning: "bg-yellow-50 border-yellow-200",
+    confirm: "bg-red-50 border-red-200",
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100">
+        <div className={`flex items-center gap-3 p-4 rounded-xl border mb-4 ${colors[type]}`}>
+          {icons[type]}
+          <div>
+            <p className="font-semibold text-gray-900">{title}</p>
+            <p className="text-sm text-gray-600 mt-0.5">{message}</p>
+          </div>
+        </div>
+        <div className="flex gap-3 justify-end">
+          {type === "confirm" ? (
+            <>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { onConfirm?.(); onClose(); }}
+                className="px-4 py-2 rounded-xl text-sm bg-red-600 text-white hover:bg-red-700 transition font-medium"
+              >
+                Remover
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-sm bg-purple-600 text-white hover:bg-purple-700 transition font-medium"
+            >
+              OK
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfissionaisPage() {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +89,15 @@ export default function ProfissionaisPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [plan, setPlan] = useState("free");
   const [form, setForm] = useState({ name: "", email: "", specialty: "" });
+  const [modal, setModal] = useState<Omit<ModalProps, "onClose"> & { onClose?: () => void }>({
+    isOpen: false, title: "", message: "", type: "success",
+  });
+
+  const showModal = (title: string, message: string, type: ModalProps["type"], onConfirm?: () => void) => {
+    setModal({ isOpen: true, title, message, type, onConfirm });
+  };
+
+  const closeModal = () => setModal(prev => ({ ...prev, isOpen: false }));
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,15 +111,12 @@ export default function ProfissionaisPage() {
       setUserId(session.user.id);
 
       const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan_id")
-        .eq("user_id", session.user.id)
-        .single();
+        .from("subscriptions").select("plan_id")
+        .eq("user_id", session.user.id).single();
       setPlan(sub?.plan_id || "free");
 
       const { data } = await supabase
-        .from("professionals")
-        .select("*")
+        .from("professionals").select("*")
         .eq("salon_id", session.user.id)
         .order("created_at", { ascending: false });
       setProfessionals(data || []);
@@ -55,7 +128,7 @@ export default function ProfissionaisPage() {
   const handleInvite = async () => {
     if (!form.name || !form.email || !userId) return;
     if (professionals.length >= 5) {
-      alert("Limite de 5 profissionais atingido no plano Premium.");
+      showModal("Limite atingido", "Você já tem 5 profissionais cadastrados no plano Premium.", "warning");
       return;
     }
     setSending(true);
@@ -66,22 +139,31 @@ export default function ProfissionaisPage() {
         body: JSON.stringify({ ...form, salonId: userId }),
       });
       const data = await response.json();
-      if (data.error) { alert("Erro: " + data.error); return; }
+      if (data.error) {
+        showModal("Erro ao convidar", data.error, "error");
+        return;
+      }
       setProfessionals(prev => [data.professional, ...prev]);
       setForm({ name: "", email: "", specialty: "" });
       setShowForm(false);
-      alert("Convite enviado com sucesso!");
+      showModal("Convite enviado! 🎉", `O convite foi enviado para ${form.email}. O profissional receberá um e-mail para criar sua conta.`, "success");
     } catch {
-      alert("Erro ao enviar convite.");
+      showModal("Erro de conexão", "Não foi possível enviar o convite. Tente novamente.", "error");
     } finally {
       setSending(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remover este profissional?")) return;
-    await supabase.from("professionals").delete().eq("id", id);
-    setProfessionals(prev => prev.filter(p => p.id !== id));
+  const handleDelete = (id: string, name: string) => {
+    showModal(
+      "Remover profissional",
+      `Tem certeza que deseja remover ${name}? Esta ação não pode ser desfeita.`,
+      "confirm",
+      async () => {
+        await supabase.from("professionals").delete().eq("id", id);
+        setProfessionals(prev => prev.filter(p => p.id !== id));
+      }
+    );
   };
 
   if (plan !== "premium") {
@@ -103,6 +185,15 @@ export default function ProfissionaisPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <Modal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onConfirm={modal.onConfirm}
+        onClose={closeModal}
+      />
+
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -128,21 +219,21 @@ export default function ProfissionaisPage() {
                 placeholder="Nome completo"
                 value={form.name}
                 onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <input
                 type="email"
                 placeholder="E-mail"
                 value={form.email}
                 onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <input
                 type="text"
                 placeholder="Especialidade (ex: Cabeleireiro)"
                 value={form.specialty}
                 onChange={e => setForm(p => ({ ...p, specialty: e.target.value }))}
-                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
             <div className="flex gap-3">
@@ -199,7 +290,7 @@ export default function ProfissionaisPage() {
                     </span>
                   )}
                   <button
-                    onClick={() => handleDelete(pro.id)}
+                    onClick={() => handleDelete(pro.id, pro.name)}
                     className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                   >
                     <Trash2 size={16} />
