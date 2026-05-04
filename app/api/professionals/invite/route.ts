@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verifica se email já foi convidado
+    // Verifica se email já foi convidado neste salão
     const { data: existing } = await supabase
       .from("professionals")
       .select("id")
@@ -45,10 +45,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Gera token de convite
+    // Gera token de convite único
     const inviteToken = crypto.randomUUID();
+    const appUrl = "https://agendify-plpd.vercel.app";
+    const inviteUrl = `${appUrl}/convite?token=${inviteToken}&salon=${salonId}`;
 
-    // Cria o profissional
+    // Cria o profissional no banco
     const { data: professional, error } = await supabase
       .from("professionals")
       .insert({
@@ -65,9 +67,16 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    // Envia convite por email via Supabase Auth
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://agendify-plpd.vercel.app"}/convite?token=${inviteToken}&salon=${salonId}`;
+    // Busca dados do salão para personalizar o e-mail
+    const { data: salon } = await supabase
+      .from("salons")
+      .select("nome")
+      .eq("user_id", salonId)
+      .single();
 
+    const salonName = salon?.nome || "Agendify";
+
+    // Tenta convidar via Supabase Auth (para novos usuários)
     const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
       email,
       {
@@ -77,13 +86,56 @@ export async function POST(req: NextRequest) {
           salon_id: salonId,
           invite_token: inviteToken,
           role: "professional",
+          full_name: name,
         },
       }
     );
 
+    // Se usuário já existe, envia e-mail customizado via Resend
     if (inviteError) {
-      console.error("Erro ao enviar convite:", inviteError.message);
-      // Não falha — profissional foi criado, convite pode ser reenviado
+      console.log("Usuário já existe, enviando e-mail via Resend...");
+
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (resendApiKey) {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Agendify <onboarding@resend.dev>",
+            to: [email],
+            subject: `Você foi convidado para trabalhar no ${salonName}!`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: #7c3aed; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 24px;">Agendify</h1>
+                </div>
+                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb;">
+                  <h2 style="color: #111827;">Olá, ${name}! 👋</h2>
+                  <p style="color: #6b7280; font-size: 16px;">
+                    Você foi convidado para fazer parte da equipe do <strong>${salonName}</strong> no Agendify.
+                  </p>
+                  <p style="color: #6b7280; font-size: 16px;">
+                    Clique no botão abaixo para aceitar o convite e acessar sua agenda:
+                  </p>
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${inviteUrl}" 
+                       style="background: #7c3aed; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                      Aceitar convite
+                    </a>
+                  </div>
+                  <p style="color: #9ca3af; font-size: 14px; text-align: center;">
+                    Se não conseguir clicar no botão, copie e cole este link no navegador:<br/>
+                    <a href="${inviteUrl}" style="color: #7c3aed;">${inviteUrl}</a>
+                  </p>
+                </div>
+              </div>
+            `,
+          }),
+        });
+      }
     }
 
     return NextResponse.json({ professional });
