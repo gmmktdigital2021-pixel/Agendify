@@ -128,21 +128,21 @@ export default function ProfissionaisPage() {
                 placeholder="Nome completo"
                 value={form.name}
                 onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                className="border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
               />
               <input
                 type="email"
                 placeholder="E-mail"
                 value={form.email}
                 onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                className="border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
               />
               <input
                 type="text"
                 placeholder="Especialidade (ex: Cabeleireiro)"
                 value={form.specialty}
                 onChange={e => setForm(p => ({ ...p, specialty: e.target.value }))}
-                className="border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
               />
             </div>
             <div className="flex gap-3">
