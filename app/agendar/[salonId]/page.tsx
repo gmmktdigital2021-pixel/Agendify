@@ -22,6 +22,7 @@ interface Service {
 interface Salon {
   nome: string;
   foto_perfil: string | null;
+  user_id: string;
 }
 
 type Step = "professional" | "service" | "datetime" | "confirm" | "success";
@@ -115,11 +116,13 @@ export default function AgendarPage() {
     }
   };
 
-  const steps = [
-    ...(professionals.length > 0 ? [{ key: "professional", label: "Profissional" }] : []),
-    { key: "service", label: "Serviço" },
-    { key: "datetime", label: "Data e hora" },
-    { key: "confirm", label: "Confirmar" },
+  type StepType = "professional" | "service" | "datetime" | "confirm" | "success";
+
+  const steps: { key: StepType; label: string }[] = [
+    ...(professionals.length > 0 ? [{ key: "professional" as StepType, label: "Profissional" }] : []),
+    { key: "service" as StepType, label: "Serviço" },
+    { key: "datetime" as StepType, label: "Data e hora" },
+    { key: "confirm" as StepType, label: "Confirmar" },
   ];
 
   const currentStepIndex = steps.findIndex(s => s.key === step);
