@@ -55,6 +55,7 @@ export default function ProfissionalLayout({ children }: { children: React.React
 
   const navItems = [
     { name: "Minha Agenda", href: "/dashboard/profissionais/minha-agenda", icon: Calendar },
+    { name: "Meus Horários", href: "/dashboard/profissionais/horarios", icon: Clock },
     { name: "Clientes", href: "/dashboard/profissionais/meus-clientes", icon: Users },
   ];
 
