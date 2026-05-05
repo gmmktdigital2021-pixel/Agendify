@@ -42,14 +42,11 @@ type DayKey = keyof typeof DEFAULT_HORARIOS;
 type DayConfig = { ativo: boolean; inicio: string; fim: string; almoco_inicio: string; almoco_fim: string };
 
 export default function ConfiguracoesPage() {
-  const WHATSAPP_DEFAULT = "Oi {nome}, seu horário está confirmado para {dia} às {hora} para o serviço de {servico}.";
-
   const [formData, setFormData] = useState({
     nome: "Carregando...",
     whatsapp: "",
     antecedencia_minima: "1 hora",
     intervalo_atendimentos: "Sem intervalo",
-    mensagem_padrao: WHATSAPP_DEFAULT,
     mensagem_boas_vindas: "",
     foto_perfil: "",
     foto_capa: "",
@@ -84,7 +81,6 @@ export default function ConfiguracoesPage() {
           whatsapp: salon.whatsapp || "",
           antecedencia_minima: antecedenciaReverseMap[salon.antecedencia_minima] || "1 hora",
           intervalo_atendimentos: intervaloReverseMap[salon.intervalo_atendimentos] || "Sem intervalo",
-          mensagem_padrao: salon.mensagem_padrao || WHATSAPP_DEFAULT,
           mensagem_boas_vindas: salon.mensagem_boas_vindas || "",
           foto_perfil: salon.foto_perfil || "",
           foto_capa: salon.foto_capa || "",
@@ -162,7 +158,6 @@ export default function ConfiguracoesPage() {
         whatsapp: formData.whatsapp,
         antecedencia_minima: antecedenciaMap[formData.antecedencia_minima] ?? 60,
         intervalo_atendimentos: intervaloMap[formData.intervalo_atendimentos] ?? 0,
-        mensagem_padrao: formData.mensagem_padrao,
         mensagem_boas_vindas: formData.mensagem_boas_vindas,
         foto_perfil: formData.foto_perfil,
         foto_capa: formData.foto_capa,
@@ -185,23 +180,6 @@ export default function ConfiguracoesPage() {
       setIsSaving(false);
     }
   };
-
-  const insertVariable = (variable: string) => {
-    const textarea = textAreaRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newText = formData.mensagem_padrao.substring(0, start) + variable + formData.mensagem_padrao.substring(end);
-      setFormData({ ...formData, mensagem_padrao: newText });
-      setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = start + variable.length; textarea.focus(); }, 0);
-    } else {
-      setFormData({ ...formData, mensagem_padrao: formData.mensagem_padrao + ' ' + variable });
-    }
-  };
-
-  const previewMessage = formData.mensagem_padrao
-    .replace('{nome}', 'Maria').replace('{dia}', 'segunda-feira')
-    .replace('{hora}', '14:00').replace('{servico}', 'Corte Feminino').replace('{valor}', 'R$ 80,00');
 
   const fullLink = `${process.env.NEXT_PUBLIC_SITE_URL}/agendar/${salonId}`;
   const copyToClipboard = () => { navigator.clipboard.writeText(fullLink); setToastMsg("Link copiado!"); };
@@ -293,13 +271,13 @@ export default function ConfiguracoesPage() {
               return (
                 <div key={day} className={`rounded-xl border transition-all ${cfg.ativo ? 'border-brand/30 bg-brand/5' : 'border-slate-200 bg-slate-50 opacity-60'}`}>
                   {/* Header do dia */}
-                  <div className="flex items-center justify-between px-4 py-3 cursor-pointer" onClick={() => updateDia(day, 'ativo', !cfg.ativo)}>
+                  <div className="flex items-center justify-between px-4 py-3">
                     <span className={`font-bold text-sm ${cfg.ativo ? 'text-brand' : 'text-slate-400'}`}>{DAY_LABELS[day]}</span>
                     <div className={`flex items-center gap-2 text-xs font-semibold ${cfg.ativo ? 'text-brand' : 'text-slate-400'}`}>
                       {cfg.ativo ? (
-                        <><ToggleRight className="w-6 h-6" /> Aberto</>
+                        <><ToggleRight className="w-6 h-6 cursor-pointer" onClick={() => updateDia(day, 'ativo', false)} /> Aberto</>
                       ) : (
-                        <><ToggleLeft className="w-6 h-6" /> Fechado</>
+                        <><ToggleLeft className="w-6 h-6 cursor-pointer" onClick={() => updateDia(day, 'ativo', true)} /> Fechado</>
                       )}
                     </div>
                   </div>
@@ -365,27 +343,7 @@ export default function ConfiguracoesPage() {
           </div>
         </Card>
 
-        {/* MENSAGEM WHATSAPP */}
-        <Card className="p-6">
-          <h3 className="text-[17px] font-bold text-slate-800 flex items-center gap-2 mb-1">
-            <Smartphone className="w-5 h-5 text-brand" /> Mensagem WhatsApp
-          </h3>
-          <p className="text-sm text-slate-500 mb-6">Personalize a mensagem automática enviada ao interagir com atendimentos.</p>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {['{nome}', '{dia}', '{hora}', '{servico}', '{valor}'].map(v => (
-              <button type="button" key={v} onClick={() => insertVariable(v)} className="px-3 py-1 bg-brand/10 text-brand text-[11px] font-bold rounded-lg hover:bg-brand hover:text-white transition-colors">{v}</button>
-            ))}
-          </div>
-          <textarea ref={textAreaRef} value={formData.mensagem_padrao} onChange={(e) => setFormData({ ...formData, mensagem_padrao: e.target.value })}
-            className="w-full px-4 py-3 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:bg-white focus:outline-none focus:border-brand h-28 resize-none mb-2 placeholder:text-slate-400" />
-          <div className="flex justify-end mb-4">
-            <button type="button" onClick={() => setFormData({ ...formData, mensagem_padrao: WHATSAPP_DEFAULT })} className="text-[12px] font-bold text-slate-400 hover:text-brand transition-colors">Restaurar padrão</button>
-          </div>
-          <div className="p-4 bg-slate-50 border border-slate-200/60 rounded-xl relative">
-            <div className="absolute -top-2.5 left-4 bg-slate-50 px-2 text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Pré-visualização</div>
-            <p className="text-sm text-slate-700 italic font-medium leading-relaxed">" {previewMessage} "</p>
-          </div>
-        </Card>
+
 
         {/* APARÊNCIA */}
         <Card className="p-6">

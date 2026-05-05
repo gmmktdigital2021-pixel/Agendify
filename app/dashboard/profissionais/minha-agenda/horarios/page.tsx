@@ -38,6 +38,7 @@ export default function HorariosPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [defaultDuration, setDefaultDuration] = useState(60);
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,13 +52,14 @@ export default function HorariosPage() {
 
       const { data: pro } = await supabase
         .from("professionals")
-        .select("id, schedule")
+        .select("id, schedule, default_duration")
         .eq("user_id", session.user.id)
         .single();
 
       if (pro) {
         setProfessionalId(pro.id);
         if (pro.schedule) setSchedule(pro.schedule);
+        if (pro.default_duration) setDefaultDuration(pro.default_duration);
       }
       setLoading(false);
     };
@@ -70,7 +72,7 @@ export default function HorariosPage() {
     try {
       await supabase
         .from("professionals")
-        .update({ schedule, updated_at: new Date().toISOString() })
+        .update({ schedule, default_duration: defaultDuration, updated_at: new Date().toISOString() })
         .eq("id", professionalId);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -119,6 +121,22 @@ export default function HorariosPage() {
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saved ? "Salvo! ✓" : "Salvar"}
           </button>
+        </div>
+
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+          <h3 className="font-semibold text-gray-900 mb-1">Duração padrão dos atendimentos</h3>
+          <p className="text-gray-500 text-sm mb-3">Tempo médio de cada serviço que você realiza</p>
+          <select
+            value={defaultDuration}
+            onChange={e => setDefaultDuration(Number(e.target.value))}
+            className="border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 w-full md:w-48"
+          >
+            <option value={30}>30 minutos</option>
+            <option value={45}>45 minutos</option>
+            <option value={60}>1 hora</option>
+            <option value={90}>1h30</option>
+            <option value={120}>2 horas</option>
+          </select>
         </div>
 
         <div className="space-y-3">
