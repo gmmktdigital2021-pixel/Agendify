@@ -516,9 +516,7 @@ export default function DashboardPage() {
     <div className="space-y-8 pb-20">
       {/* Header & Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">
-          Visão <span className="font-medium text-slate-600">Geral</span>
-        </h2>
+        <h1 className="text-gray-900 font-bold text-2xl">Visão Geral</h1>
         
         <div className="relative z-30" ref={dropdownRef}>
           <button 

@@ -64,6 +64,8 @@ export default function ConfiguracoesPage() {
   const [toastMsg, setToastMsg] = useState("");
   const [salonId, setSalonId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   useEffect(() => {
     async function loadConfig() {
@@ -414,6 +416,68 @@ export default function ConfiguracoesPage() {
           </Button>
         </div>
       </form>
+
+      {/* Zona de Perigo */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-100 mt-6">
+        <h3 className="font-semibold text-red-600 mb-1">Zona de perigo</h3>
+        <p className="text-gray-500 text-sm mb-4">
+          Ao excluir sua conta todos os seus dados, agendamentos e clientes serão permanentemente removidos. Esta ação não pode ser desfeita.
+        </p>
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-xl text-sm font-medium hover:bg-red-100 transition"
+        >
+          Excluir minha conta
+        </button>
+      </div>
+
+      {/* Modal de confirmação */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-100">
+            <h3 className="font-bold text-gray-900 text-lg mb-2">Excluir conta permanentemente?</h3>
+            <p className="text-gray-500 text-sm mb-4">
+              Digite <strong>EXCLUIR</strong> para confirmar que deseja excluir sua conta e todos os seus dados.
+            </p>
+            <input
+              type="text"
+              placeholder="Digite EXCLUIR para confirmar"
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(""); }}
+                className="px-4 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  if (deleteConfirmText !== "EXCLUIR") return;
+                  try {
+                    await supabase.from("appointments").delete().eq("salon_id", salonId);
+                    await supabase.from("clients").delete().eq("salon_id", salonId);
+                    await supabase.from("services").delete().eq("salon_id", salonId);
+                    await supabase.from("subscriptions").delete().eq("user_id", userId);
+                    await supabase.from("salons").delete().eq("user_id", userId);
+                    await supabase.auth.signOut();
+                    window.location.href = "/login";
+                  } catch (err) {
+                    alert("Erro ao excluir conta. Tente novamente.");
+                  }
+                }}
+                disabled={deleteConfirmText !== "EXCLUIR"}
+                className="px-4 py-2 rounded-xl text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition font-medium"
+              >
+                Excluir permanentemente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
     </div>
