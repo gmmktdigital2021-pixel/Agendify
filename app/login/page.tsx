@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarCheck, MailCheck, Lock, Clock, Star, MessageCircle } from "lucide-react";
+import { CalendarCheck, Lock, Clock, Star, MessageCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 function LoginContent() {
@@ -13,9 +13,7 @@ function LoginContent() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [usePassword, setUsePassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [authError, setAuthError] = useState("");
   const [showSignUpOption, setShowSignUpOption] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -37,29 +35,19 @@ function LoginContent() {
     setAuthError("");
     setShowSignUpOption(false);
     try {
-      if (!usePassword) {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
-        });
-        if (error) console.warn(error.message);
-        setSuccess(true);
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          if (error.message.toLowerCase().includes("invalid credentials") || error.message.toLowerCase().includes("invalid login")) {
-            setAuthError("Senha incorreta ou usuário não encontrado.");
-            setShowSignUpOption(true);
-            setLoading(false);
-            return;
-          }
-          throw error;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        if (error.message.toLowerCase().includes("invalid credentials") || error.message.toLowerCase().includes("invalid login")) {
+          setAuthError("Senha incorreta ou usuário não encontrado.");
+          setShowSignUpOption(true);
+          setLoading(false);
+          return;
         }
-        if (data.session) router.push("/dashboard");
+        throw error;
       }
+      if (data.session) router.push("/dashboard");
     } catch (err: any) {
-      if (!usePassword) setSuccess(true);
-      else setAuthError(err.message || "Erro ao fazer login");
+      setAuthError(err.message || "Erro ao fazer login");
     } finally {
       if (!showSignUpOption) setLoading(false);
     }
@@ -72,7 +60,7 @@ function LoginContent() {
       const { error: signUpError } = await supabase.auth.signUp({ email, password });
       if (signUpError) {
         if (signUpError.message.toLowerCase().includes("already registered"))
-          throw new Error("Este e-mail já possui conta. Tente a senha original ou recupere via Magic Link.");
+          throw new Error("Este e-mail já possui conta. Tente a senha original ou recupere a senha.");
         throw signUpError;
       }
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -123,152 +111,121 @@ function LoginContent() {
             <span className="font-extrabold text-xl text-brand">Agendify</span>
           </Link>
 
-          {!success ? (
-            <div className="max-w-sm">
-              <h1 className="text-3xl font-extrabold text-slate-900 mb-1">
-                {isCadastro ? "Crie sua conta" : "Bem-vindo de volta!"}
-              </h1>
-              <p className="text-slate-600 text-sm mb-8">
-                {isCadastro ? "Grátis, sem cartão de crédito." : "Acesse sua agenda agora."}
-              </p>
+          <div className="max-w-sm w-full">
+            <h1 className="text-3xl font-extrabold text-slate-900 mb-1">
+              {isCadastro ? "Crie sua conta" : "Bem-vindo de volta!"}
+            </h1>
+            <p className="text-slate-600 text-sm mb-8">
+              {isCadastro ? "Grátis, sem cartão de crédito." : "Acesse sua agenda agora."}
+            </p>
 
-              {authError && (
-                <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-xl text-sm mb-5 font-medium">
-                  {authError}
-                </div>
-              )}
-              {resetMessage && (
-                <div className="bg-green-50 text-green-600 border border-green-100 p-3 rounded-xl text-sm mb-5 font-medium">
-                  {resetMessage}
-                </div>
-              )}
+            {authError && (
+              <div className="bg-red-50 text-red-600 border border-red-100 p-3 rounded-xl text-sm mb-5 font-medium">
+                {authError}
+              </div>
+            )}
+            {resetMessage && (
+              <div className="bg-green-50 text-green-600 border border-green-100 p-3 rounded-xl text-sm mb-5 font-medium">
+                {resetMessage}
+              </div>
+            )}
 
-              <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">E-mail</label>
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">E-mail</label>
+                <input
+                  type="email"
+                  placeholder="voce@email.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all placeholder:text-slate-300"
+                />
+              </div>
+
+              {!isForgotPassword && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Senha</label>
                   <input
-                    type="email"
-                    placeholder="voce@email.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
                     required
                     className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all placeholder:text-slate-300"
                   />
                 </div>
+              )}
 
-                {usePassword && !isForgotPassword && (
-                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Senha</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      required
-                      className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all placeholder:text-slate-300"
-                    />
-                  </div>
-                )}
-
-                {!showSignUpOption && !isForgotPassword ? (
-                  <div className="flex flex-col gap-2 mt-1">
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50 shadow-lg shadow-brand/25"
-                    >
-                      {loading ? "Processando..." : (usePassword ? "Entrar com senha" : "Entrar com link mágico")}
-                    </button>
-                    {usePassword && (
-                      <button
-                        type="button"
-                        onClick={() => { setIsForgotPassword(true); setAuthError(""); setResetMessage(""); }}
-                        className="text-xs text-slate-500 hover:text-brand hover:underline self-end mt-1"
-                      >
-                        Esqueci minha senha
-                      </button>
-                    )}
-                  </div>
-                ) : showSignUpOption ? (
-                  <div className="flex flex-col gap-2 mt-1">
-                    <button
-                      type="button"
-                      onClick={handleCreatePassword}
-                      disabled={loading}
-                      className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-sm hover:bg-green-700 transition-all disabled:opacity-50"
-                    >
-                      {loading ? "Criando..." : "Criar nova senha agora"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowSignUpOption(false)}
-                      className="w-full text-slate-400 py-2.5 text-sm hover:text-slate-700 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 mt-1">
-                    <button
-                      type="button"
-                      onClick={handleResetPassword}
-                      disabled={loading}
-                      className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50"
-                    >
-                      {loading ? "Enviando..." : "Enviar e-mail de recuperação"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setIsForgotPassword(false); setResetMessage(""); setAuthError(""); }}
-                      className="w-full text-slate-400 py-2.5 text-sm hover:text-slate-700 transition-colors"
-                    >
-                      Voltar ao login
-                    </button>
-                  </div>
-                )}
-
-                {!showSignUpOption && !isForgotPassword && (
+              {!showSignUpOption && !isForgotPassword ? (
+                <div className="flex flex-col gap-2 mt-1">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50 shadow-lg shadow-brand/25"
+                  >
+                    {loading ? "Processando..." : "Entrar com senha"}
+                  </button>
                   <button
                     type="button"
-                    onClick={() => { setUsePassword(!usePassword); setShowSignUpOption(false); setAuthError(""); }}
-                    className="text-xs text-slate-600 hover:text-brand transition-colors flex items-center justify-center gap-1.5"
+                    onClick={() => { setIsForgotPassword(true); setAuthError(""); setResetMessage(""); }}
+                    className="text-xs text-slate-500 hover:text-brand hover:underline self-end mt-1"
                   >
-                    <Lock className="w-3 h-3" />
-                    {usePassword ? "Prefiro usar link mágico" : "Prefiro usar senha"}
+                    Esqueci minha senha
                   </button>
-                )}
-              </form>
+                </div>
+              ) : showSignUpOption ? (
+                <div className="flex flex-col gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={handleCreatePassword}
+                    disabled={loading}
+                    className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-sm hover:bg-green-700 transition-all disabled:opacity-50"
+                  >
+                    {loading ? "Criando..." : "Criar nova senha agora"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSignUpOption(false)}
+                    className="w-full text-slate-400 py-2.5 text-sm hover:text-slate-700 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={loading}
+                    className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50"
+                  >
+                    {loading ? "Enviando..." : "Enviar e-mail de recuperação"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgotPassword(false); setResetMessage(""); setAuthError(""); }}
+                    className="w-full text-slate-400 py-2.5 text-sm hover:text-slate-700 transition-colors"
+                  >
+                    Voltar ao login
+                  </button>
+                </div>
+              )}
+            </form>
 
-              <div className="flex items-center gap-3 my-6">
-                <div className="flex-1 border-t border-slate-100" />
-                <span className="text-xs text-slate-500 font-medium">ou</span>
-                <div className="flex-1 border-t border-slate-100" />
-              </div>
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 border-t border-slate-100" />
+              <span className="text-xs text-slate-500 font-medium">ou</span>
+              <div className="flex-1 border-t border-slate-100" />
+            </div>
 
-              <button
-                onClick={() => router.push(isCadastro ? '/login' : '/login?modo=cadastro')}
-                className="w-full border-2 border-slate-100 text-slate-600 py-3.5 rounded-2xl font-bold text-sm hover:border-brand hover:text-brand transition-all"
-              >
-                {isCadastro ? "Já tenho uma conta" : "Criar conta grátis"}
-              </button>
-            </div>
-          ) : (
-            <div className="max-w-sm text-center animate-in fade-in zoom-in duration-300">
-              <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MailCheck className="w-8 h-8 text-green-500" />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Verifique seu e-mail!</h2>
-              <p className="text-slate-500 text-sm mb-6">
-                Enviamos um link para <strong>{email}</strong>. Expira em 10 minutos.
-              </p>
-              <button
-                onClick={() => { setSuccess(false); setUsePassword(false); }}
-                className="w-full border-2 border-slate-100 text-slate-500 py-3 rounded-2xl font-medium text-sm hover:border-brand hover:text-brand transition-all"
-              >
-                Tentar outro e-mail
-              </button>
-            </div>
-          )}
+            <button
+              onClick={() => router.push(isCadastro ? '/login' : '/login?modo=cadastro')}
+              className="w-full border-2 border-slate-100 text-slate-600 py-3.5 rounded-2xl font-bold text-sm hover:border-brand hover:text-brand transition-all"
+            >
+              {isCadastro ? "Já tenho uma conta" : "Criar conta grátis"}
+            </button>
+          </div>
 
           <p className="text-xs text-slate-500 mt-10">© 2025 Agendify. Todos os direitos reservados.</p>
         </div>
@@ -345,9 +302,3 @@ export default function LoginPage() {
     </React.Suspense>
   );
 }
-
-
-
-
-
-
