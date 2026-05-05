@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CalendarCheck, Calendar, Users, LogOut, Menu, X, Clock, User } from "lucide-react";
+import { CalendarCheck, Calendar, Users, LogOut, Menu, X, Clock, User, Lock } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 
 export default function ProfissionalLayout({ children }: { children: React.ReactNode }) {
@@ -58,6 +58,7 @@ export default function ProfissionalLayout({ children }: { children: React.React
     { name: "Meus Horários", href: "/dashboard/profissionais/horarios", icon: Clock },
     { name: "Clientes", href: "/dashboard/profissionais/meus-clientes", icon: Users },
     { name: "Meu Perfil", href: "/dashboard/profissionais/perfil", icon: User },
+    { name: "Trocar Senha", href: "/dashboard/profissionais/senha", icon: Lock },
   ];
 
   return (
