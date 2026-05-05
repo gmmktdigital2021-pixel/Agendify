@@ -67,6 +67,11 @@ export default function AgendarPage() {
         .select("id, name, specialty, avatar_url")
         .eq("salon_id", ownerUserId)
         .eq("active", true);
+
+      // Se não tem profissionais cadastrados, pula direto para serviços
+      if (!pros || pros.length === 0) {
+        setStep("service");
+      }
       setProfessionals(pros || []);
 
       // Busca serviços
@@ -88,12 +93,12 @@ export default function AgendarPage() {
   ];
 
   const handleSubmit = async () => {
-    if (!selectedProfessional || !selectedService || !selectedDate || !selectedTime || !clientName || !clientPhone) return;
+    if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientPhone) return;
     setSubmitting(true);
     try {
       await supabase.from("appointments").insert({
-        salon_id: salonId,
-        professional_id: selectedProfessional.id,
+        salon_id: salon?.user_id || salonId,
+        professional_id: selectedProfessional?.id || null,
         client_name: clientName,
         client_phone: clientPhone,
         service_name: selectedService.nome,
@@ -111,7 +116,7 @@ export default function AgendarPage() {
   };
 
   const steps = [
-    { key: "professional", label: "Profissional" },
+    ...(professionals.length > 0 ? [{ key: "professional", label: "Profissional" }] : []),
     { key: "service", label: "Serviço" },
     { key: "datetime", label: "Data e hora" },
     { key: "confirm", label: "Confirmar" },
@@ -181,8 +186,9 @@ export default function AgendarPage() {
               <User size={18} className="text-purple-600" /> Escolha o profissional
             </h2>
             {professionals.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
-                <p className="text-gray-500">Nenhum profissional disponível no momento.</p>
+              // Redireciona automaticamente para serviços
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600" />
               </div>
             ) : (
               <div className="space-y-3">
