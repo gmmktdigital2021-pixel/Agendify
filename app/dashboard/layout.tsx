@@ -155,7 +155,10 @@ export default function DashboardLayout({
     { name: "Agenda", href: "/dashboard/agenda", icon: Calendar, badge: pendingCount },
     { name: "Clientes", href: "/dashboard/clientes", icon: Users },
     { name: "Serviços", href: "/dashboard/servicos", icon: Scissors },
-    ...(userPlan === "premium" ? [{ name: "Profissionais", href: "/dashboard/profissionais", icon: UserCheck }] : []),
+    ...(userPlan === "premium" ? [
+      { name: "Profissionais", href: "/dashboard/profissionais", icon: UserCheck },
+      { name: "Equipe", href: "/dashboard/equipe", icon: Users },
+    ] : []),
     { name: "Planos", href: "/dashboard/planos", icon: Crown },
     { name: "Config.", href: "/dashboard/configuracoes", icon: Settings },
   ];
