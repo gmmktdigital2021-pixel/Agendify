@@ -67,32 +67,42 @@ export default function DashboardLayout({
       setUserEmail(session.user.email || "usuário");
       setUserInitials(session.user.email?.substring(0,2).toUpperCase() || "US");
 
-      // Verifica se o usuário logado é um profissional convidado
-      const { data: isProfessional } = await supabase
-        .from("professionals")
-        .select("id, invite_token, salon_id")
+      // Verifica se é dono de salão PRIMEIRO — dono sempre tem prioridade
+      const { data: ownedSalon } = await supabase
+        .from("salons")
+        .select("id")
         .eq("user_id", session.user.id)
-        .eq("invite_accepted", true)
         .single();
 
-      if (isProfessional) {
-        if (!window.location.pathname.includes("/dashboard/profissionais")) {
-          router.push("/dashboard/profissionais/minha-agenda");
+      // Se for dono de salão, nunca redireciona para dashboard de profissional
+      if (!ownedSalon) {
+        // Só verifica se é profissional se NÃO for dono
+        const { data: isProfessional } = await supabase
+          .from("professionals")
+          .select("id, invite_token, salon_id")
+          .eq("user_id", session.user.id)
+          .eq("invite_accepted", true)
+          .single();
+
+        if (isProfessional) {
+          if (!window.location.pathname.includes("/dashboard/profissionais")) {
+            router.push("/dashboard/profissionais/minha-agenda");
+          }
+          return;
         }
-        return;
-      }
 
-      // Verifica se tem convite pendente pelo email
-      const { data: pendingInvite } = await supabase
-        .from("professionals")
-        .select("invite_token, salon_id")
-        .eq("email", session.user.email ?? "")
-        .eq("invite_accepted", false)
-        .single();
+        // Verifica se tem convite pendente pelo email
+        const { data: pendingInvite } = await supabase
+          .from("professionals")
+          .select("invite_token, salon_id")
+          .eq("email", session.user.email ?? "")
+          .eq("invite_accepted", false)
+          .single();
 
-      if (pendingInvite) {
-        router.push(`/convite?token=${pendingInvite.invite_token}&salon=${pendingInvite.salon_id}`);
-        return;
+        if (pendingInvite) {
+          router.push(`/convite?token=${pendingInvite.invite_token}&salon=${pendingInvite.salon_id}`);
+          return;
+        }
       }
 
       let { data: salon } = await supabase.from('salons').select('*').eq('user_id', session.user.id).single();
