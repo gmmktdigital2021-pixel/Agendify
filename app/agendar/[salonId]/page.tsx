@@ -1,366 +1,327 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { CalendarCheck, ChevronLeft, Check, Clock, CalendarDays, User, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Toast } from "@/components/Toast";
-import { createClient } from '@supabase/supabase-js';
-import { DayPicker } from "react-day-picker";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import "react-day-picker/style.css";
+import { useEffect, useState, useMemo } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useParams } from "next/navigation";
+import { Calendar, Clock, User, Scissors, ChevronRight, CheckCircle } from "lucide-react";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+interface Professional {
+  id: string;
+  name: string;
+  specialty: string;
+  avatar_url: string | null;
+}
 
-export default function AgendarPage({ params }: { params: { salonId: string } }) {
-  const { salonId } = params;
+interface Service {
+  id: string;
+  nome: string;
+  preco: number;
+  duracao: number;
+}
 
-  const [salon, setSalon] = useState<any>(null);
-  const [services, setServices] = useState<any[]>([]);
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+interface Salon {
+  nome: string;
+  foto_perfil: string | null;
+}
 
-  const [step, setStep] = useState(1);
-  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
+type Step = "professional" | "service" | "datetime" | "confirm" | "success";
 
-  const [selectedService, setSelectedService] = useState<any>(null);
-  const [clientData, setClientData] = useState({ nome: "", telefone: "" });
+export default function AgendarPage() {
+  const params = useParams();
+  const salonId = params.salonId as string;
+
+  const [step, setStep] = useState<Step>("professional");
+  const [salon, setSalon] = useState<Salon | null>(null);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  const [step2Errors, setStep2Errors] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const { data: salonData } = await supabase.from('salons').select('*').eq('id', salonId).single();
-        if (salonData) setSalon(salonData);
-        const { data: szData } = await supabase.from('services').select('*').eq('salon_id', salonId);
-        if (szData) setServices(szData);
-      } catch (e) {
-        console.error("Erro ao puxar dados:", e);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadData();
-  }, [salonId]);
+    const init = async () => {
+      // Busca dados do salão
+      const { data: salonData } = await supabase
+        .from("salons")
+        .select("nome, foto_perfil")
+        .eq("user_id", salonId)
+        .single();
+      setSalon(salonData);
 
-  // Busca slots disponíveis via função SQL sempre que data ou serviço mudar
-  useEffect(() => {
-    if (!selectedDate || !selectedService) {
-      setAvailableSlots([]);
-      return;
-    }
+      // Busca profissionais ativos
+      const { data: pros } = await supabase
+        .from("professionals")
+        .select("id, name, specialty, avatar_url")
+        .eq("salon_id", salonId)
+        .eq("active", true)
+        .eq("invite_accepted", true);
+      setProfessionals(pros || []);
 
-    const fetchSlots = async () => {
-      setIsLoadingSlots(true);
-      setSelectedTime("");
-      try {
-        const { data, error } = await supabase.rpc('get_available_slots', {
-          p_salon_id: salonId,
-          p_data: selectedDate,
-          p_duracao_minutos: selectedService.duracao_minutos
-        });
-
-        if (error) {
-          console.error('Erro ao buscar slots:', error);
-          setAvailableSlots([]);
-        } else {
-          setAvailableSlots(data || []);
-        }
-      } catch (e) {
-        console.error('Erro:', e);
-        setAvailableSlots([]);
-      } finally {
-        setIsLoadingSlots(false);
-      }
+      // Busca serviços
+      const { data: svcs } = await supabase
+        .from("services")
+        .select("id, nome, preco, duracao")
+        .eq("salon_id", salonId)
+        .eq("ativo", true);
+      setServices(svcs || []);
+      setLoading(false);
     };
+    init();
+  }, [supabase, salonId]);
 
-    fetchSlots();
-  }, [selectedDate, selectedService, salonId]);
+  const availableTimes = [
+    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+    "11:00", "11:30", "13:00", "13:30", "14:00", "14:30",
+    "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+  ];
 
-  const handleConfirmarAgendamento = async () => {
-    setIsSubmitLoading(true);
+  const handleSubmit = async () => {
+    if (!selectedProfessional || !selectedService || !selectedDate || !selectedTime || !clientName || !clientPhone) return;
+    setSubmitting(true);
     try {
-      const [horas, minutos] = selectedTime.split(':').map(Number);
-      const inicio = new Date();
-      inicio.setHours(horas, minutos, 0, 0);
-      const fim = new Date(inicio.getTime() + selectedService.duracao_minutos * 60000);
-      const horaFim = `${String(fim.getHours()).padStart(2, '0')}:${String(fim.getMinutes()).padStart(2, '0')}:00`;
-      const horaInicio = `${selectedTime}:00`;
-
-      const { data, error } = await supabase.rpc('create_public_appointment', {
-        p_salon_id: salonId,
-        p_nome: clientData.nome,
-        p_telefone: clientData.telefone.replace(/\D/g, ''),
-        p_service_id: selectedService.id,
-        p_data: selectedDate,
-        p_hora_inicio: horaInicio,
-        p_hora_fim: horaFim,
+      await supabase.from("appointments").insert({
+        salon_id: salonId,
+        professional_id: selectedProfessional.id,
+        client_name: clientName,
+        client_phone: clientPhone,
+        service_name: selectedService.nome,
+        date: selectedDate,
+        time: selectedTime,
+        status: "pendente",
+        created_at: new Date().toISOString(),
       });
-
-      if (error) { setToastMsg('Erro: ' + error.message); return; }
-      if (!data?.success) { setToastMsg('Erro: ' + (data?.error || 'Desconhecido')); return; }
-
-      setSuccess(true);
+      setStep("success");
     } catch (err) {
-      setToastMsg('Falha de conexão. Tente novamente.');
+      alert("Erro ao agendar. Tente novamente.");
     } finally {
-      setIsSubmitLoading(false);
+      setSubmitting(false);
     }
   };
 
-  if (isLoading) {
+  const steps = [
+    { key: "professional", label: "Profissional" },
+    { key: "service", label: "Serviço" },
+    { key: "datetime", label: "Data e hora" },
+    { key: "confirm", label: "Confirmar" },
+  ];
+
+  const currentStepIndex = steps.findIndex(s => s.key === step);
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center font-sans">
-        <div className="text-xl font-bold text-slate-400 animate-pulse">Carregando perfil...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
       </div>
     );
   }
 
-  if (!salon) {
+  if (step === "success") {
     return (
-      <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center font-sans">
-        <div className="text-xl font-bold text-slate-400">Salão não encontrado :(</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 max-w-md w-full text-center">
+          <CheckCircle size={56} className="text-green-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Agendado com sucesso! 🎉</h2>
+          <p className="text-gray-500 mb-6">
+            Seu agendamento com <strong>{selectedProfessional?.name}</strong> foi confirmado para <strong>{selectedDate}</strong> às <strong>{selectedTime}</strong>.
+          </p>
+          <button
+            onClick={() => { setStep("professional"); setSelectedProfessional(null); setSelectedService(null); setSelectedDate(""); setSelectedTime(""); setClientName(""); setClientPhone(""); }}
+            className="w-full bg-purple-600 text-white py-3 rounded-xl font-medium hover:bg-purple-700 transition"
+          >
+            Fazer novo agendamento
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] font-sans pb-10">
-      <div className="bg-brand py-6">
-        <div className="max-w-[480px] mx-auto px-4 flex items-center justify-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
-            <CalendarCheck className="w-6 h-6 text-brand" />
-          </div>
-          <h1 className="text-white font-bold text-2xl drop-shadow-md">{salon.nome}</h1>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header do salão */}
+      <div className="bg-brand text-white py-8 px-4 text-center">
+        <h1 className="text-2xl font-bold">{salon?.nome || "Agendamento"}</h1>
+        <p className="text-white/70 text-sm mt-1">Escolha seu profissional e agende</p>
       </div>
 
-      <div className="max-w-[480px] mx-auto px-4 -mt-4">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden min-h-[500px] flex flex-col relative">
+      {/* Steps */}
+      {step !== "success" && (
+        <div className="flex items-center justify-center gap-2 py-4 px-4 bg-white border-b border-gray-100 overflow-x-auto">
+          {steps.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-2 shrink-0">
+              <div className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full ${i <= currentStepIndex ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-400"}`}>
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${i < currentStepIndex ? "bg-purple-600 text-white" : i === currentStepIndex ? "bg-purple-600 text-white" : "bg-gray-300 text-gray-500"}`}>
+                  {i < currentStepIndex ? "✓" : i + 1}
+                </span>
+                {s.label}
+              </div>
+              {i < steps.length - 1 && <ChevronRight size={14} className="text-gray-300" />}
+            </div>
+          ))}
+        </div>
+      )}
 
-          {!success && (
-            <div className="bg-slate-50 border-b border-slate-100 flex items-center p-4">
-              {step > 1 && (
-                <button onClick={() => setStep(step - 1)} className="p-1 text-slate-400 hover:text-brand transition-colors mr-2">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-              )}
-              <div className="flex-1 flex justify-center items-center gap-2">
-                {[1, 2, 3, 4].map(s => (
-                  <div key={s} className={`h-2 rounded-full transition-all ${s <= step ? 'w-8 bg-brand' : 'w-4 bg-slate-200'}`} />
+      <div className="max-w-2xl mx-auto p-4 py-6">
+
+        {/* Step 1 — Escolher profissional */}
+        {step === "professional" && (
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <User size={18} className="text-purple-600" /> Escolha o profissional
+            </h2>
+            {professionals.length === 0 ? (
+              <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
+                <p className="text-gray-500">Nenhum profissional disponível no momento.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {professionals.map(pro => (
+                  <button key={pro.id} onClick={() => { setSelectedProfessional(pro); setStep("service"); }}
+                    className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 hover:border-purple-300 hover:shadow-md transition text-left">
+                    <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 font-bold text-xl shrink-0">
+                      {pro.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{pro.name}</p>
+                      <p className="text-sm text-purple-600">{pro.specialty}</p>
+                    </div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </button>
                 ))}
               </div>
-              <div className="w-7"></div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {success && (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                <CheckCircle2 className="w-10 h-10 text-green-500" />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">Agendamento Solicitado!</h2>
-              <p className="text-slate-500 mb-8">Seu agendamento foi enviado com sucesso! O salão entrará em contato para confirmação.</p>
-              <div className="p-4 bg-slate-50 rounded-xl w-full flex flex-col text-left gap-2 shadow-inner border border-slate-100">
-                <p className="text-sm"><b>Serviço:</b> {selectedService?.nome}</p>
-                <p className="text-sm"><b>Data:</b> {selectedDate.split('-').reverse().join('/')}</p>
-                <p className="text-sm"><b>Hora:</b> {selectedTime}</p>
-                <p className="text-sm"><b>Duração:</b> {selectedService?.duracao_minutos} min</p>
-              </div>
+        {/* Step 2 — Escolher serviço */}
+        {step === "service" && (
+          <div>
+            <button onClick={() => setStep("professional")} className="text-sm text-purple-600 mb-4 flex items-center gap-1 hover:underline">
+              ← Voltar
+            </button>
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Scissors size={18} className="text-purple-600" /> Escolha o serviço
+            </h2>
+            <div className="space-y-3">
+              {services.map(svc => (
+                <button key={svc.id} onClick={() => { setSelectedService(svc); setStep("datetime"); }}
+                  className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between hover:border-purple-300 hover:shadow-md transition text-left">
+                  <div>
+                    <p className="font-semibold text-gray-900">{svc.nome}</p>
+                    <p className="text-sm text-gray-500">{svc.duracao} min</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-purple-600">R$ {svc.preco?.toFixed(2)}</span>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </div>
+                </button>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {!success && step === 1 && (
-            <div className="flex-1 p-6 animate-in slide-in-from-left">
-              <h2 className="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-brand" /> Escolha o serviço
-              </h2>
-              <div className="space-y-3">
-                {services.length === 0 ? (
-                  <div className="text-center text-slate-400 py-10">Nenhum serviço disponível.</div>
-                ) : (
-                  services.map(s => (
-                    <div key={s.id} onClick={() => { setSelectedService(s); setStep(2); }}
-                      className="p-4 rounded-xl border-2 border-slate-100 hover:border-brand cursor-pointer transition-all hover:bg-brand/5 group flex justify-between items-center">
-                      <div>
-                        <p className="font-bold text-slate-800 group-hover:text-brand transition-colors text-lg mb-1">{s.nome}</p>
-                        <p className="text-sm text-slate-500 flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5" /> {s.duracao_minutos} min
-                        </p>
-                      </div>
-                      <span className="font-bold text-slate-800">R$ {s.preco?.toFixed(2)}</span>
-                    </div>
-                  ))
+        {/* Step 3 — Escolher data e hora */}
+        {step === "datetime" && (
+          <div>
+            <button onClick={() => setStep("service")} className="text-sm text-purple-600 mb-4 flex items-center gap-1 hover:underline">
+              ← Voltar
+            </button>
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Calendar size={18} className="text-purple-600" /> Escolha a data e horário
+            </h2>
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Data</label>
+              <input
+                type="date"
+                value={selectedDate}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={e => setSelectedDate(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            {selectedDate && (
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <Clock size={16} className="text-purple-600" /> Horários disponíveis
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {availableTimes.map(time => (
+                    <button key={time} onClick={() => setSelectedTime(time)}
+                      className={`py-2 rounded-xl text-sm font-medium transition ${selectedTime === time ? "bg-purple-600 text-white" : "bg-gray-50 text-gray-700 hover:bg-purple-50 hover:text-purple-700"}`}>
+                      {time}
+                    </button>
+                  ))}
+                </div>
+                {selectedTime && (
+                  <button onClick={() => setStep("confirm")}
+                    className="w-full mt-4 bg-purple-600 text-white py-3 rounded-xl font-medium hover:bg-purple-700 transition">
+                    Continuar
+                  </button>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {!success && step === 2 && (
-            <div className="flex-1 p-6 animate-in slide-in-from-right">
-              <h2 className="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2">
-                <User className="w-5 h-5 text-brand" /> Seus dados
-              </h2>
-              <div className="space-y-5">
-                <div>
-                  <Input label="Nome Completo *" value={clientData.nome}
-                    onChange={e => { setClientData({ ...clientData, nome: e.target.value }); if (step2Errors) setStep2Errors(false); }}
-                    placeholder="Ex: Ana Clara" autoFocus />
-                  {step2Errors && (!clientData.nome || clientData.nome.trim() === "") && (
-                    <p className="text-red-500 text-sm font-medium mt-1.5 ml-1">Nome é obrigatório</p>
-                  )}
-                </div>
-                <div>
-                  <Input label="Telefone *" value={clientData.telefone}
-                    onChange={e => { setClientData({ ...clientData, telefone: e.target.value.replace(/\D/g, '') }); if (step2Errors) setStep2Errors(false); }}
-                    placeholder="Ex: 11999990000" />
-                  {step2Errors && clientData.telefone.length < 10 && (
-                    <p className="text-red-500 text-sm font-medium mt-1.5 ml-1">Telefone inválido</p>
-                  )}
-                </div>
-              </div>
-              <div className="mt-8 pt-6 border-t border-slate-100">
-                <Button onClick={() => {
-                  if (!clientData.nome || clientData.nome.trim() === "" || clientData.telefone.length < 10) {
-                    setStep2Errors(true); return;
-                  }
-                  setStep2Errors(false);
-                  setStep(3);
-                }} className="w-full text-lg py-3.5">
-                  Continuar <Check className="w-5 h-5 ml-1" />
-                </Button>
+        {/* Step 4 — Confirmar */}
+        {step === "confirm" && (
+          <div>
+            <button onClick={() => setStep("datetime")} className="text-sm text-purple-600 mb-4 flex items-center gap-1 hover:underline">
+              ← Voltar
+            </button>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Seus dados</h2>
+
+            {/* Resumo */}
+            <div className="bg-purple-50 rounded-2xl p-4 border border-purple-100 mb-4">
+              <p className="text-sm text-purple-700 font-medium mb-2">Resumo do agendamento</p>
+              <div className="space-y-1 text-sm text-gray-700">
+                <p>👤 <strong>{selectedProfessional?.name}</strong> — {selectedProfessional?.specialty}</p>
+                <p>✂️ <strong>{selectedService?.nome}</strong> — R$ {selectedService?.preco?.toFixed(2)}</p>
+                <p>📅 <strong>{selectedDate}</strong> às <strong>{selectedTime}</strong></p>
               </div>
             </div>
-          )}
 
-          {!success && step === 3 && (
-            <div className="flex-1 p-6 animate-in slide-in-from-right flex flex-col">
-              <h2 className="font-bold text-xl text-slate-800 mb-6 flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-brand" /> Quando?
-              </h2>
-
-              <div className="mb-6 flex flex-col items-center">
-                <style>{`
-                  .rdp-root { --rdp-accent-color: #7C3AED; --rdp-background-color: rgba(124,58,237,0.1); margin: 0; }
-                  .rdp-day_disabled { opacity: 0.3; pointer-events: none; }
-                `}</style>
-                <div className="w-full border-2 border-brand/20 bg-brand/5 rounded-xl p-4 flex justify-center">
-                  <DayPicker
-                    mode="single"
-                    selected={selectedDate ? new Date(selectedDate + "T00:00:00") : undefined}
-                    onSelect={(date) => {
-                      if (!date) { setSelectedDate(""); return; }
-                      setSelectedDate(format(date, "yyyy-MM-dd"));
-                      setSelectedTime("");
-                    }}
-                    disabled={[
-                      { before: new Date(new Date().setHours(0, 0, 0, 0)) },
-                      (date) => {
-                        const days = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
-                        const day = days[date.getDay()];
-                        return !!salon.dias_ativos && !salon.dias_ativos.includes(day);
-                      }
-                    ]}
-                    locale={ptBR}
-                  />
-                </div>
-                <p className="text-xs text-slate-400 mt-3 text-center">
-                  Dias ativos: {salon.dias_ativos?.join(', ')}
-                </p>
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Seu nome</label>
+                <input
+                  type="text"
+                  placeholder="Nome completo"
+                  value={clientName}
+                  onChange={e => setClientName(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
               </div>
-
-              {selectedDate && (
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-slate-800 mb-3">
-                    Horários Livres:
-                    {isLoadingSlots && <span className="text-brand ml-2 font-normal text-xs animate-pulse">verificando...</span>}
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3 max-h-[220px] overflow-y-auto pr-2">
-                    {isLoadingSlots ? (
-                      <div className="col-span-3 text-center py-6 text-slate-400 text-sm animate-pulse">
-                        Verificando disponibilidade...
-                      </div>
-                    ) : availableSlots.length === 0 ? (
-                      <div className="col-span-3 text-center text-slate-500 py-6 border border-slate-100 rounded-xl bg-slate-50 text-sm">
-                        Nenhum horário disponível para {selectedDate.split('-').reverse().join('/')}.
-                      </div>
-                    ) : (
-                      availableSlots.map(t => (
-                        <button key={t} onClick={() => setSelectedTime(t)}
-                          className={`py-2 rounded-lg font-bold border transition-colors ${selectedTime === t ? 'bg-brand text-white border-brand' : 'bg-white text-slate-600 border-slate-200 hover:border-brand hover:text-brand'}`}>
-                          {t}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 pt-6 border-t border-slate-100 mt-auto">
-                <Button onClick={() => setStep(4)} disabled={!selectedDate || !selectedTime} className="w-full text-lg py-3.5">
-                  Revisar
-                </Button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Seu WhatsApp</label>
+                <input
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  value={clientPhone}
+                  onChange={e => setClientPhone(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
               </div>
+              <button
+                onClick={handleSubmit}
+                disabled={!clientName || !clientPhone || submitting}
+                className="w-full bg-purple-600 text-white py-3 rounded-xl font-medium hover:bg-purple-700 disabled:opacity-50 transition"
+              >
+                {submitting ? "Agendando..." : "Confirmar agendamento"}
+              </button>
             </div>
-          )}
-
-          {!success && step === 4 && (
-            <div className="flex-1 p-6 animate-in slide-in-from-right flex flex-col">
-              <h2 className="font-bold text-xl text-slate-800 mb-6">Última Revisão</h2>
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-auto">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-brand/10 text-brand rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-slate-800">{clientData.nome}</p>
-                      <p className="text-sm text-slate-500">{clientData.telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3")}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="text-slate-500 text-sm">Serviço</div>
-                    <div className="font-bold text-slate-800">{selectedService?.nome}</div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-slate-500 text-sm">Duração</div>
-                    <div className="font-bold text-slate-800">{selectedService?.duracao_minutos} min</div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-slate-500 text-sm">Valor</div>
-                    <div className="font-bold text-green-600">R$ {selectedService?.preco?.toFixed(2)}</div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-slate-500 text-sm">Data & Hora</div>
-                    <div className="font-bold text-brand bg-brand/10 px-2.5 py-1 rounded-lg">
-                      {selectedDate.split('-').reverse().join('/')} às {selectedTime}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-8">
-                <Button onClick={handleConfirmarAgendamento} disabled={isSubmitLoading} className="w-full text-lg py-3.5 gap-2">
-                  {isSubmitLoading ? <Clock className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                  {isSubmitLoading ? "Processando..." : "Confirmar Agendamento"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-        </div>
+          </div>
+        )}
       </div>
-      {toastMsg && <Toast message={toastMsg} onClose={() => setToastMsg("")} />}
     </div>
   );
 }
