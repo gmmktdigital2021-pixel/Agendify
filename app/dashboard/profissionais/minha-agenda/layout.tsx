@@ -55,10 +55,10 @@ export default function ProfissionalLayout({ children }: { children: React.React
 
   const navItems = [
     { name: "Minha Agenda", href: "/dashboard/profissionais/minha-agenda", icon: Calendar },
-    { name: "Meus Horários", href: "/dashboard/profissionais/horarios", icon: Clock },
-    { name: "Clientes", href: "/dashboard/profissionais/meus-clientes", icon: Users },
-    { name: "Meu Perfil", href: "/dashboard/profissionais/perfil", icon: User },
-    { name: "Trocar Senha", href: "/dashboard/profissionais/senha", icon: Lock },
+    { name: "Clientes", href: "/dashboard/profissionais/minha-agenda/clientes", icon: Users },
+    { name: "Meus Horários", href: "/dashboard/profissionais/minha-agenda/horarios", icon: Clock },
+    { name: "Meu Perfil", href: "/dashboard/profissionais/minha-agenda/perfil", icon: User },
+    { name: "Trocar Senha", href: "/dashboard/profissionais/minha-agenda/senha", icon: Lock },
   ];
 
   return (
