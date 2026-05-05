@@ -94,10 +94,14 @@ function LoginContent() {
     setAuthError("");
     setResetMessage("");
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://agendify-plpd.vercel.app/reset-password',
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
-      if (error) throw error;
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      
       setResetMessage("E-mail de recuperação enviado!");
     } catch (err: any) {
       setAuthError(err.message || "Erro ao enviar e-mail de recuperação.");
