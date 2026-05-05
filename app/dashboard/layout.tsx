@@ -67,6 +67,33 @@ export default function DashboardLayout({
       setUserEmail(session.user.email || "usuário");
       setUserInitials(session.user.email?.substring(0,2).toUpperCase() || "US");
 
+      // Verifica o papel do usuário
+      const roleResponse = await fetch(`/api/auth/role?userId=${session.user.id}`);
+      const roleData = await roleResponse.json();
+
+      // Se for profissional, redireciona para a agenda dele
+      if (roleData.role === "professional") {
+        if (!window.location.pathname.includes("/dashboard/profissionais/minha-agenda")) {
+          router.push("/dashboard/profissionais/minha-agenda");
+        }
+        return;
+      }
+
+      // Se tiver convite pendente, redireciona para aceitar
+      if (roleData.role === "unknown") {
+        const { data: pendingInvite } = await supabase
+          .from("professionals")
+          .select("invite_token, salon_id")
+          .eq("email", session.user.email)
+          .eq("invite_accepted", false)
+          .single();
+
+        if (pendingInvite) {
+          router.push(`/convite?token=${pendingInvite.invite_token}&salon=${pendingInvite.salon_id}`);
+          return;
+        }
+      }
+
       let { data: salon } = await supabase.from('salons').select('*').eq('user_id', session.user.id).single();
       
       if (!salon) {
