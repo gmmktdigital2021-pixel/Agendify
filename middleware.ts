@@ -36,6 +36,7 @@ export async function middleware(request: NextRequest) {
     "/cadastro",
     "/landing",
     "/nichos",
+    "/convite",
     "/api/webhooks",
   ];
 
