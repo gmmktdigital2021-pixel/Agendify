@@ -18,6 +18,8 @@ function LoginContent() {
   const [success, setSuccess] = useState(false);
   const [authError, setAuthError] = useState("");
   const [showSignUpOption, setShowSignUpOption] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetMessage, setResetMessage] = useState("");
 
   useEffect(() => {
     const checkUser = async () => {
@@ -83,6 +85,27 @@ function LoginContent() {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!email) {
+      setAuthError("Digite seu e-mail para recuperar a senha.");
+      return;
+    }
+    setLoading(true);
+    setAuthError("");
+    setResetMessage("");
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://agendify-plpd.vercel.app/reset-password',
+      });
+      if (error) throw error;
+      setResetMessage("E-mail de recuperação enviado!");
+    } catch (err: any) {
+      setAuthError(err.message || "Erro ao enviar e-mail de recuperação.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#7C3AED] flex font-sans">
       <div className="w-full h-screen flex">
@@ -110,6 +133,11 @@ function LoginContent() {
                   {authError}
                 </div>
               )}
+              {resetMessage && (
+                <div className="bg-green-50 text-green-600 border border-green-100 p-3 rounded-xl text-sm mb-5 font-medium">
+                  {resetMessage}
+                </div>
+              )}
 
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <div>
@@ -124,7 +152,7 @@ function LoginContent() {
                   />
                 </div>
 
-                {usePassword && (
+                {usePassword && !isForgotPassword && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Senha</label>
                     <input
@@ -138,15 +166,26 @@ function LoginContent() {
                   </div>
                 )}
 
-                {!showSignUpOption ? (
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50 mt-1 shadow-lg shadow-brand/25"
-                  >
-                    {loading ? "Processando..." : (usePassword ? "Entrar com senha" : "Entrar com link mágico")}
-                  </button>
-                ) : (
+                {!showSignUpOption && !isForgotPassword ? (
+                  <div className="flex flex-col gap-2 mt-1">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50 shadow-lg shadow-brand/25"
+                    >
+                      {loading ? "Processando..." : (usePassword ? "Entrar com senha" : "Entrar com link mágico")}
+                    </button>
+                    {usePassword && (
+                      <button
+                        type="button"
+                        onClick={() => { setIsForgotPassword(true); setAuthError(""); setResetMessage(""); }}
+                        className="text-xs text-slate-500 hover:text-brand hover:underline self-end mt-1"
+                      >
+                        Esqueci minha senha
+                      </button>
+                    )}
+                  </div>
+                ) : showSignUpOption ? (
                   <div className="flex flex-col gap-2 mt-1">
                     <button
                       type="button"
@@ -164,9 +203,27 @@ function LoginContent() {
                       Cancelar
                     </button>
                   </div>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      disabled={loading}
+                      className="w-full bg-brand text-white py-4 rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all disabled:opacity-50"
+                    >
+                      {loading ? "Enviando..." : "Enviar e-mail de recuperação"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsForgotPassword(false); setResetMessage(""); setAuthError(""); }}
+                      className="w-full text-slate-400 py-2.5 text-sm hover:text-slate-700 transition-colors"
+                    >
+                      Voltar ao login
+                    </button>
+                  </div>
                 )}
 
-                {!showSignUpOption && (
+                {!showSignUpOption && !isForgotPassword && (
                   <button
                     type="button"
                     onClick={() => { setUsePassword(!usePassword); setShowSignUpOption(false); setAuthError(""); }}
