@@ -50,28 +50,30 @@ export default function AgendarPage() {
 
   useEffect(() => {
     const init = async () => {
-      // Busca dados do salão
+      // Busca dados do salão e o user_id do dono
       const { data: salonData } = await supabase
         .from("salons")
-        .select("nome, foto_perfil")
-        .eq("user_id", salonId)
+        .select("nome, foto_perfil, user_id")
+        .eq("id", salonId)
         .single();
+
+      // Se não encontrar pelo id, tenta pelo user_id diretamente
+      const ownerUserId = salonData?.user_id || salonId;
       setSalon(salonData);
 
-      // Busca profissionais ativos
+      // Busca profissionais pelo user_id do dono
       const { data: pros } = await supabase
         .from("professionals")
         .select("id, name, specialty, avatar_url")
-        .eq("salon_id", salonId)
-        .eq("active", true)
-        .eq("invite_accepted", true);
+        .eq("salon_id", ownerUserId)
+        .eq("active", true);
       setProfessionals(pros || []);
 
       // Busca serviços
       const { data: svcs } = await supabase
         .from("services")
         .select("id, nome, preco, duracao")
-        .eq("salon_id", salonId)
+        .eq("salon_id", ownerUserId)
         .eq("ativo", true);
       setServices(svcs || []);
       setLoading(false);
