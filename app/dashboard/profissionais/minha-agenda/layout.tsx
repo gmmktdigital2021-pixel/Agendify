@@ -95,7 +95,9 @@ export default function ProfissionalLayout({ children }: { children: React.React
           {/* NAVEGAÇÃO */}
           <nav className="flex-1 py-4 space-y-2 overflow-x-hidden overflow-y-auto w-full">
             {navItems.map((item) => {
-              const isActive = pathname?.startsWith(item.href);
+              const isActive = item.href === "/dashboard/profissionais/minha-agenda"
+                ? pathname === "/dashboard/profissionais/minha-agenda"
+                : pathname?.startsWith(item.href);
               return (
                 <Link key={item.href} href={item.href}
                   className={`flex items-center relative py-0 h-[44px] w-[44px] group-hover:w-[216px] mx-auto rounded-[10px] group-hover:px-3 transition-colors duration-250 group/navitem ${isActive ? "bg-white/[0.18]" : "hover:bg-white/[0.10]"}`}
@@ -152,7 +154,9 @@ export default function ProfissionalLayout({ children }: { children: React.React
             </div>
             <nav className="flex-1 px-4 space-y-2 mt-4">
               {navItems.map((item) => {
-                const isActive = pathname?.startsWith(item.href);
+                const isActive = item.href === "/dashboard/profissionais/minha-agenda"
+                  ? pathname === "/dashboard/profissionais/minha-agenda"
+                  : pathname?.startsWith(item.href);
                 return (
                   <Link key={item.href} href={item.href} onClick={() => setIsMobileOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? "bg-white/15 text-white font-bold" : "text-white/70 hover:bg-white/10"}`}
