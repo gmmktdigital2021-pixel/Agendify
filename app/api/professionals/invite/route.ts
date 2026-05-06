@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const inviteToken = crypto.randomUUID();
-    const appUrl = "https://agendify-plpd.vercel.app";
+    const appUrl = "https://agendify.app.br";
     const inviteUrl = `${appUrl}/convite?token=${inviteToken}&salon=${salonId}`;
 
     const { data: professional, error } = await supabase

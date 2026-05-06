@@ -109,7 +109,7 @@ function LoginContent() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "https://agendify-plpd.vercel.app/auth/callback",
+        redirectTo: "https://agendify.app.br/auth/callback",
       },
     });
   };
