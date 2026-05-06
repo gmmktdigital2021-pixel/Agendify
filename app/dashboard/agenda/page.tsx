@@ -277,6 +277,23 @@ export default function AgendaPage() {
         status: "confirmado" // Regra visual 2 exige confirmado
       });
 
+      // Adiciona cliente no CRM automaticamente se não existir
+      const { data: existingClient } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("salon_id", salonId)
+        .eq("telefone", formData.telefone)
+        .maybeSingle();
+
+      if (!existingClient) {
+        await supabase.from("clients").insert({
+          salon_id: salonId,
+          nome: formData.nome,
+          telefone: formData.telefone,
+          created_at: new Date().toISOString(),
+        });
+      }
+
       showToast("✅ Agendamento confirmado!");
       setModalOpen(false);
     } catch (error: unknown) {

@@ -108,6 +108,25 @@ export default function AgendarPage() {
         status: "pendente",
         created_at: new Date().toISOString(),
       });
+
+      // Adiciona cliente no CRM automaticamente se não existir
+      const ownerUserId = salon?.user_id || salonId;
+      const { data: existingClient } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("salon_id", ownerUserId)
+        .eq("telefone", clientPhone)
+        .maybeSingle();
+
+      if (!existingClient) {
+        await supabase.from("clients").insert({
+          salon_id: ownerUserId,
+          nome: clientName,
+          telefone: clientPhone,
+          created_at: new Date().toISOString(),
+        });
+      }
+
       setStep("success");
     } catch (err) {
       alert("Erro ao agendar. Tente novamente.");
