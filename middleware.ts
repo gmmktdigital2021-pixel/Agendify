@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
     "/nichos",
     "/convite",
     "/reset-password",
+    "/auth/callback",
     "/api/webhooks",
   ];
 
