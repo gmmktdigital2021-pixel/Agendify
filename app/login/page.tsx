@@ -10,6 +10,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isCadastro = searchParams.get("modo") === "cadastro";
+  const redirect = searchParams.get("redirect") || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +24,7 @@ function LoginContent() {
     const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) router.push("/dashboard");
+        if (session) router.push(redirect);
       } catch { }
     };
     checkUser();
@@ -45,7 +46,7 @@ function LoginContent() {
         }
         throw error;
       }
-      if (data.session) router.push("/dashboard");
+      if (data.session) router.push(redirect);
     } catch (err: any) {
       setAuthError(err.message || "Erro ao fazer login");
     } finally {
@@ -65,7 +66,7 @@ function LoginContent() {
       }
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
-      if (data?.session) router.push("/dashboard");
+      if (data?.session) router.push(redirect);
     } catch (e: any) {
       setAuthError(e.message || "Erro ao criar conta com senha.");
     } finally {
@@ -143,7 +144,7 @@ function LoginContent() {
                   await supabase.auth.signInWithOAuth({
                     provider: "google",
                     options: {
-                      redirectTo: `${window.location.origin}/dashboard`,
+                      redirectTo: `${window.location.origin}${redirect}`,
                     },
                   });
                 }}
