@@ -53,8 +53,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Se está logado e tenta acessar login/cadastro
-  if (user && (pathname === "/login" || pathname === "/cadastro")) {
+  // Se está logado e tenta acessar rotas públicas redireciona para dashboard
+  if (user && (
+    pathname === "/login" || 
+    pathname === "/cadastro" ||
+    pathname === "/" ||
+    pathname === "/landing"
+  )) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
