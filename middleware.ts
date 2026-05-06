@@ -26,19 +26,15 @@ export async function middleware(request: NextRequest) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-
   const { pathname } = request.nextUrl;
 
-  // Rotas que nunca devem ser interceptadas
-  const ignoredRoutes = [
-    "/auth/callback",
-    "/auth",
-    "/_next",
-    "/favicon",
-    "/api",
-  ];
-
-  if (ignoredRoutes.some(route => pathname.startsWith(route))) {
+  // Nunca intercepta rotas de auth, API ou assets
+  if (
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon")
+  ) {
     return supabaseResponse;
   }
 
@@ -64,13 +60,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Se está logado e tenta acessar rotas públicas redireciona para dashboard
-  if (user && (
-    pathname === "/login" ||
-    pathname === "/cadastro" ||
-    pathname === "/" ||
-    pathname === "/landing"
-  )) {
+  // Se está logado e tenta acessar login/cadastro
+  if (user && (pathname === "/login" || pathname === "/cadastro")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
