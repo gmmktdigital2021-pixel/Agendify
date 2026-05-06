@@ -29,7 +29,20 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Rotas públicas que não precisam de login
+  // Rotas que nunca devem ser interceptadas
+  const ignoredRoutes = [
+    "/auth/callback",
+    "/auth",
+    "/_next",
+    "/favicon",
+    "/api",
+  ];
+
+  if (ignoredRoutes.some(route => pathname.startsWith(route))) {
+    return supabaseResponse;
+  }
+
+  // Rotas públicas
   const publicRoutes = [
     "/",
     "/login",
@@ -37,16 +50,14 @@ export async function middleware(request: NextRequest) {
     "/landing",
     "/nichos",
     "/convite",
+    "/privacidade",
+    "/termos",
     "/reset-password",
-    "/auth/callback",
-    "/api/webhooks",
   ];
 
   const isPublic =
-    publicRoutes.some((route) => pathname.startsWith(route)) ||
-    pathname.startsWith("/agendar") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon");
+    publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/")) ||
+    pathname.startsWith("/agendar");
 
   // Se não está logado e tenta acessar rota privada
   if (!user && !isPublic) {
@@ -55,7 +66,7 @@ export async function middleware(request: NextRequest) {
 
   // Se está logado e tenta acessar rotas públicas redireciona para dashboard
   if (user && (
-    pathname === "/login" || 
+    pathname === "/login" ||
     pathname === "/cadastro" ||
     pathname === "/" ||
     pathname === "/landing"
