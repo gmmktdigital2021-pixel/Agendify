@@ -99,6 +99,21 @@ function LoginContent() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    const { createBrowserClient } = await import("@supabase/ssr");
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "https://agendify-plpd.vercel.app/auth/callback",
+      },
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#7C3AED] flex font-sans">
       <div className="w-full h-screen flex">
@@ -135,19 +150,7 @@ function LoginContent() {
               {/* Botão Google */}
               <button
                 type="button"
-                onClick={async () => {
-                  const { createBrowserClient } = await import("@supabase/ssr");
-                  const supabase = createBrowserClient(
-                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-                  );
-                  await supabase.auth.signInWithOAuth({
-                    provider: "google",
-                    options: {
-                      redirectTo: `${window.location.origin}/auth/callback`,
-                    },
-                  });
-                }}
+                onClick={handleGoogleLogin}
                 className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition shadow-sm"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
